@@ -25,11 +25,79 @@ import Image from "astro/components/Image.astro";
     </p>
     <a
       href="/reservas"
-      class="font-semibold my-6 bg-red-400 text-white rounded-lg py-2 px-4 drop-shadow-lg hover:bg-red-500 transition-colors"
-      >Reserva Aquí</a
+      class="font-semibold my-6 bg-red-400 text-white rounded-lg py-2 px-4 drop-shadow-lg hover:bg-red-500 transition-colors flex items-center gap-2"
     >
+      <!-- Flecha izquierda con animación -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-right animate-bounce-right"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M5 12l14 0"></path>
+        <path d="M13 18l6 -6"></path>
+        <path d="M13 6l6 6"></path>
+      </svg>
+      Reserva Aquí
+      <!-- Flecha derecha con animación -->
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        class="icon icon-tabler icons-tabler-outline icon-tabler-arrow-left animate-bounce-left"
+      >
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+        <path d="M5 12l14 0"></path>
+        <path d="M5 12l6 6"></path>
+        <path d="M5 12l6 -6"></path>
+      </svg>
+    </a>
   </div>
 </header>
+
+<!-- Animaciones CSS -->
+<style>
+  @keyframes bounce-left {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(-8px);
+    }
+  }
+
+  @keyframes bounce-right {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    50% {
+      transform: translateX(8px);
+    }
+  }
+
+  .animate-bounce-left {
+    animation: bounce-left 1.5s infinite;
+  }
+
+  .animate-bounce-right {
+    animation: bounce-right 1.5s infinite;
+  }
+</style>
 
 <script>
   const heroSection = document.getElementById("hero-section");

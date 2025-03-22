@@ -1,0 +1,40 @@
+---
+import Image from "astro/components/Image.astro";
+---
+
+<header
+  id="hero-section"
+  class="w-full min-h-[70vh] bg-cover bg-center relative flex flex-col items-center justify-center text-white p-10 transition-all duration-1000 ease-in-out"
+  style="background-image: url('/photo1.jpg');"
+>
+  <!-- Capa difuminada -->
+  <div class="absolute inset-0 bg-black/20 backdrop-blur-sm"></div>
+
+  <!-- Contenido -->
+  <div class="flex flex-col z-10 text-center items-center">
+    <Image
+      src="/cabanas-atrapamar-log.png"
+      alt="Cabañas Atrapa Mar Logo"
+      width={200}
+      height={200}
+    />
+    <h1 class="text-4xl font-bold mt-2">Cabañas Atrapa Mar</h1>
+    <p class="text-lg mt-2 max-w-xl">
+      Bienvenidos a Cabañas Atrapa Mar, un lugar para disfrutar y relajarse en
+      Pichilemu.
+    </p>
+  </div>
+</header>
+
+<script>
+  const heroSection = document.getElementById("hero-section");
+  const images = ["/photo1.jpg", "/photo2.jpg", "/photo3.jpg"];
+  let currentIndex = 0;
+
+  function changeBackground() {
+    currentIndex = (currentIndex + 1) % images.length;
+    heroSection.style.backgroundImage = `url('${images[currentIndex]}')`;
+  }
+
+  setInterval(changeBackground, 3000);
+</script>

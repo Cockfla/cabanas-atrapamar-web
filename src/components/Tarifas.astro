@@ -1,0 +1,147 @@
+---
+const cabañas = [
+  {
+    nombre: "Cabaña 2 personas",
+    precio: "$25.000 c/ noche",
+    descripcion:
+      "Cómoda cabaña para 2 personas, con baño privado y cocina equipada.",
+    images: [
+      { src: "/cabana-2p/image1.jpeg", alt: "Cabaña 2 personas" },
+      { src: "/cabana-2p/image2.jpeg", alt: "Cabaña 2 personas" },
+      { src: "/cabana-2p/image3.jpeg", alt: "Cabaña 2 personas" },
+    ],
+  },
+  {
+    nombre: "Cabaña 4 personas",
+    precio: "$35.000 c/ noche",
+    descripcion: "Cabaña para 4 personas, con baño privado y cocina equipada.",
+    images: [
+        { src: "/cabana-4p/image1.jpeg", alt: "Cabaña 4 personas" },
+        { src: "/cabana-4p/image2.jpeg", alt: "Cabaña 4 personas" },
+        { src: "/cabana-4p/image3.jpeg", alt: "Cabaña 4 personas" },
+        { src: "/cabana-4p/image4.jpeg", alt: "Cabaña 4 personas" },
+        { src: "/cabana-4p/image5.jpeg", alt: "Cabaña 4 personas" },
+    ]
+  },
+  {
+    nombre: "Cabaña 5 personas",
+    precio:"$40.000 c/ noche",
+    descripcion:"Cabaña para 5 personas, con baño privado y cocina equipada.",
+    images: [
+        { src: "/cabana-5p/image1.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image2.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image3.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image4.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image5.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image6.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image7.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image8.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image9.jpeg", alt: "Cabaña 5 personas" },
+        { src: "/cabana-5p/image10.jpeg", alt: "Cabaña 5 personas" },
+    ]
+  },
+  {
+    nombre: "Cabaña 6 personas",
+    precio: "$45.000 c/ noche",
+    descripcion: "Cabaña para 6 personas, con baño privado y cocina equipada.",
+    images: [
+      { src: "/cabana-6p/image1.jpeg", alt: "Cabaña 6 personas" },
+      { src: "/cabana-6p/image2.jpeg", alt: "Cabaña 6 personas" },
+      { src: "/cabana-6p/image3.jpeg", alt: "Cabaña 6 personas" },
+      { src: "/cabana-6p/image4.jpeg", alt: "Cabaña 6 personas" },
+      { src: "/cabana-6p/image5.jpeg", alt: "Cabaña 6 personas" },
+    ]
+  },
+  {
+    nombre: "Cabaña 8 personas",
+    precio: "$50.000 c/ noche",
+    descripcion: "Cabaña para 8 personas, con baño privado y cocina equipada.",
+    images: [
+      { src: "/cabana-8p/image1.jpeg", alt: "Cabaña 8 personas" },
+      { src: "/cabana-8p/image2.jpeg", alt: "Cabanña 8 personas" },
+      { src: "/cabana-8p/image3.jpeg", alt: "Cabaña 8 personas" },
+      { src: "/cabana-8p/image4.jpeg", alt: "Cabaña 8 personas" },
+      { src: "/cabana-8p/image5.jpeg", alt: "Cabaña 8 personas" },
+  ]
+  }
+];
+---
+
+<section class="container mx-auto p-6">
+  <h1 class="text-3xl font-bold text-center mb-8">Cabañas</h1>
+
+  <!-- Contenedor de tarjetas -->
+  <div class="grid grid-cols-1  lg:grid-cols-5 gap-8 bg-red-400 p-8 rounded-lg">
+    {cabañas.map((cabaña) => (
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+        <!-- Carrusel -->
+        <div class="relative w-full h-[400px] overflow-hidden">
+          <div
+            class="flex transition-transform duration-500 carousel"
+            style={`width: ${cabaña.images.length * 100}%;`}
+          >
+            {cabaña.images?.map((img) => (
+              <img
+                src={img.src}
+                alt={img.alt}
+                class="w-full h-[400px] object-cover flex-shrink-0"
+                style={`width: ${100 / cabaña.images.length}%;`}
+              />
+            ))}
+          </div>
+
+          <!-- Botón izquierda -->
+          <button class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full prev-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-compact-left">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M13 20l-3 -8l3 -8" />
+            </svg>
+          </button>
+
+          <!-- Botón derecha -->
+          <button class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full next-button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-chevron-compact-right">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M11 4l3 8l-3 8" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- Información -->
+        <div class="p-4">
+          <h2 class="text-xl font-bold">{cabaña.nombre}</h2>
+          <p class="text-gray-600">{cabaña.descripcion}</p>
+          <p class="text-lg font-semibold mt-2">{cabaña.precio}</p>
+        </div>
+      </div>
+    ))}
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const carousels = document.querySelectorAll('.carousel');
+
+    carousels.forEach((carousel) => {
+      const images = carousel.children;
+      const prevButton = carousel.parentElement?.querySelector('.prev-button');
+      const nextButton = carousel.parentElement?.querySelector('.next-button');
+      let i = 0;
+
+      function updateCarousel() {
+        // Asegúrate de que carousel es un HTMLElement
+        (carousel as HTMLElement).style.transform = `translateX(-${i * (100 / images.length)}%)`;
+      }
+
+      nextButton?.addEventListener('click', () => {
+        i = (i + 1) % images.length;
+        updateCarousel();
+      });
+
+      prevButton?.addEventListener('click', () => {
+        i = (i - 1 + images.length) % images.length;
+        updateCarousel();
+      });
+    });
+  });
+</script>

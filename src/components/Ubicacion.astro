@@ -1,0 +1,21 @@
+---
+import Map from "./Map";
+---
+
+<section class="flex flex-col items-center justify-center py-12">
+  <div class="max-w-4xl w-full px-4 text-center">
+    <h1 class="text-3xl font-bold text-gray-900 mb-6">Ubicación</h1>
+    <p class="text-lg text-gray-700 mb-8">
+      Ubicación privilegiada a tan solo 10 minutos caminando del Centro de
+      Pichilemu y de la Playa
+    </p>
+    <p class="text-lg text-gray-700 mb-8">
+      Dirección: Avenida Comercio con pasaje La Estrella #230
+    </p>
+    <div class="w-full max-w-6xl px-4">
+      <div class="rounded-lg overflow-hidden shadow-lg border border-gray-200">
+        <Map client:only="react" />
+      </div>
+    </div>
+  </div>
+</section>

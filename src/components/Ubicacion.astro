@@ -128,7 +128,10 @@ const fotosPichilemu = [
       let currentIndex = 0;
 
       function updatePichilemuCarousel() {
-        pichilemuCarousel.style.transform = `translateX(-${currentIndex * (100 / slides.length)}%)`;
+        if (pichilemuCarousel) {
+          (pichilemuCarousel as HTMLElement).style.transform =
+            `translateX(-${currentIndex * (100 / slides.length)}%)`;
+        }
       }
 
       pichilemuNext?.addEventListener("click", () => {

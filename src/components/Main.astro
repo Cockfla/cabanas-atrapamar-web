@@ -108,7 +108,9 @@ import Image from "astro/components/Image.astro";
 
   function changeBackground() {
     currentIndex = (currentIndex + 1) % images.length;
-    heroSection.style.backgroundImage = `url('${images[currentIndex]}')`;
+    if (heroSection) {
+      heroSection.style.backgroundImage = `url('${images[currentIndex]}')`;
+    }
   }
 
   setInterval(changeBackground, 3000);

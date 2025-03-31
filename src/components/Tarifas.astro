@@ -188,7 +188,7 @@ const cabañas = [
       let i = 0;
 
       function updateCarousel() {
-        carousel.style.transform = `translateX(-${i * (100 / images.length)}%)`;
+        (carousel as HTMLElement).style.transform = `translateX(-${i * (100 / images.length)}%)`;
       }
 
       nextButton?.addEventListener('click', () => {

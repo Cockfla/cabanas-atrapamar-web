@@ -88,11 +88,11 @@ const cabañas = [
   <h1 class="text-3xl font-bold text-center mb-8">Cabañas</h1>
 
   <!-- Contenedor de tarjetas -->
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ">
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 justify-items-center ">
     {cabañas.map((cabaña) => (
-      <div class="bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div class="bg-white rounded-2xl shadow-lg overflow-hidden max-w-[380px] w-full">
         <!-- Carrusel -->
-        <div class="relative w-full h-[400px] overflow-hidden">
+        <div class="relative w-full h-[400px] overflow-hidden ">
           <div
             class="flex transition-transform duration-500 carousel"
             style={`width: ${cabaña.images.length * 100}%;`}

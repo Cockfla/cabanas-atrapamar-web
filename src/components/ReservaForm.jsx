@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from "../db/supabaseClient";
+import { set } from "date-fns";
 
 const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
   const {
@@ -18,8 +19,15 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [reservedDates, setReservedDates] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const cabañaId = watch("cabaña_id");
+
+  const changeMonth = (increment) => {
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + increment);
+    setCurrentMonth(newMonth);
+  };
 
   useEffect(() => {
     const fetchReservedDates = async () => {
@@ -243,50 +251,6 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
                 excludeDates={reservedDates}
                 disabled={!fechaInicio}
               />
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-medium mb-2">Disponibilidad</h3>
-          <div className="grid grid-cols-7 gap-1 text-xs text-center">
-            <div className="p-2">Dom</div>
-            <div className="p-2">Lun</div>
-            <div className="p-2">Mar</div>
-            <div className="p-2">Mié</div>
-            <div className="p-2">Jue</div>
-            <div className="p-2">Vie</div>
-            <div className="p-2">Sáb</div>
-
-            {Array.from({ length: 35 }).map((_, i) => {
-              const date = new Date();
-              date.setDate(date.getDate() + i - date.getDay());
-              const isReserved = reservedDates.some(
-                (d) => d.toDateString() === date.toDateString()
-              );
-
-              return (
-                <div
-                  key={i}
-                  className={`p-2 border rounded ${
-                    isReserved
-                      ? "bg-red-100 text-red-500"
-                      : "bg-green-100 text-green-700"
-                  }`}
-                >
-                  {date.getDate()}
-                </div>
-              );
-            })}
-          </div>
-          <div className="flex items-center mt-4 space-x-4">
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-green-100 border border-green-300 mr-2"></div>
-              <span className="text-sm">Disponible</span>
-            </div>
-            <div className="flex items-center">
-              <div className="w-4 h-4 bg-red-100 border border-red-300 mr-2"></div>
-              <span className="text-sm">Reservado</span>
             </div>
           </div>
         </div>

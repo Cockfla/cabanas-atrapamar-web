@@ -21,6 +21,7 @@ if (accessToken && refreshToken) {
     cookies.delete("sb-refresh-token", { path: "/" });
   }
 }
+export const prerender = false;
 ---
 
 <header class="sticky top-0 z-50 bg-white shadow-md">

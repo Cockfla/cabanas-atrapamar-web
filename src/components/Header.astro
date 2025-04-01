@@ -21,12 +21,12 @@ if (accessToken && refreshToken) {
     cookies.delete("sb-refresh-token", { path: "/" });
   }
 }
-export const prerender = false;
+
 ---
 
 <header class="sticky top-0 z-50 bg-white shadow-md">
   {isAdmin ? (
-    <!-- Header simplificado para administradores -->
+    
     <div class="container mx-auto px-4">
       <div class="flex items-center justify-between py-4">
         <!-- Logo y título -->

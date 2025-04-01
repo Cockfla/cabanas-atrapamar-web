@@ -35,20 +35,28 @@ export default function Reserva() {
       setLoading(true);
       const { data: reservas, error } = await supabase
         .from("reservas")
-        .select("cabaña_id")
-        .lte("fecha_inicio", fechaFin)
-        .gte("fecha_fin", fechaInicio);
+        .select("cabaña_id, fecha_inicio, fecha_fin")
+        .or(`and(fecha_inicio.lte.${fechaFin},fecha_fin.gte.${fechaInicio})`);
 
       if (error) throw error;
 
       setCabañas((prev) =>
         prev.map((cabaña) => {
+          // Filtrar reservas para esta cabaña específica
           const reservasParaCabaña = reservas.filter(
             (r) => r.cabaña_id === cabaña.id
           );
+
+          // Contar cuántas unidades están reservadas para este período
+          const unidadesReservadas = reservasParaCabaña.length;
+
+          // Calcular unidades disponibles
+          const unidadesDisponibles = cabaña.capacidad - unidadesReservadas;
+
           return {
             ...cabaña,
-            disponible: reservasParaCabaña.length < cabaña.capacidad,
+            disponible: unidadesDisponibles > 0,
+            unidadesDisponibles: unidadesDisponibles,
           };
         })
       );

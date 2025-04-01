@@ -20,6 +20,8 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
   const [success, setSuccess] = useState(false);
   const [reservedDates, setReservedDates] = useState([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [cabañaSeleccionada, setCabañaSeleccionada] = useState(null);
+  const [capacidadDisponible, setCapacidadDisponible] = useState({});
 
   const cabañaId = watch("cabaña_id");
 
@@ -30,27 +32,50 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
   };
 
   useEffect(() => {
-    const fetchReservedDates = async () => {
-      if (!cabañaId) return;
+    if (!cabañaId) return;
 
+    const fetchReservedDates = async () => {
       try {
+        // Primero, obtener capacidad de la cabaña seleccionada
+        const { data: cabañaData } = await supabase
+          .from("cabañas")
+          .select("*")
+          .eq("id", cabañaId)
+          .single();
+
+        setCabañaSeleccionada(cabañaData);
+
+        // Luego, obtener las reservas
         const { data } = await supabase
           .from("reservas")
           .select("fecha_inicio, fecha_fin")
           .eq("cabaña_id", cabañaId);
 
-        const dates = data.flatMap((reserva) => {
+        // Crear un mapa de fechas con contador de reservas
+        const reservasPorFecha = {};
+        const disponibilidadPorFecha = {};
+
+        data.forEach((reserva) => {
           const start = new Date(reserva.fecha_inicio);
           const end = new Date(reserva.fecha_fin);
-          const dates = [];
 
           for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            dates.push(new Date(d));
+            const dateString = d.toISOString().split("T")[0];
+            reservasPorFecha[dateString] =
+              (reservasPorFecha[dateString] || 0) + 1;
+            disponibilidadPorFecha[dateString] =
+              cabañaData.capacidad - reservasPorFecha[dateString];
           }
-          return dates;
         });
 
-        setReservedDates(dates);
+        setCapacidadDisponible(disponibilidadPorFecha);
+
+        // Actualizar el array de fechas reservadas (para DatePicker)
+        const fechasCompletas = Object.entries(reservasPorFecha)
+          .filter(([fecha, count]) => count >= cabañaData.capacidad)
+          .map(([fecha]) => new Date(fecha));
+
+        setReservedDates(fechasCompletas);
       } catch (error) {
         console.error("Error fetching reserved dates:", error);
       }
@@ -58,6 +83,36 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
 
     fetchReservedDates();
   }, [cabañaId]);
+
+  // Personalizar la visualización de días en el DatePicker
+  const dayClassName = (date) => {
+    const dateString = date.toISOString().split("T")[0];
+    const disponibles = capacidadDisponible[dateString];
+
+    if (!cabañaSeleccionada) return undefined;
+
+    if (disponibles === 0) return "bg-red-100 text-red-500";
+    if (disponibles < cabañaSeleccionada.capacidad)
+      return "bg-orange-100 text-orange-700";
+    return undefined;
+  };
+
+  // Función para renderizar tooltip con disponibilidad
+  const renderDayContents = (day, date) => {
+    const dateString = date.toISOString().split("T")[0];
+    const disponibles = capacidadDisponible[dateString];
+
+    if (!cabañaSeleccionada || disponibles === undefined) return day;
+
+    return (
+      <div className="relative" title={`${disponibles} disponibles`}>
+        {day}
+        <div className="absolute bottom-0 left-0 right-0 text-center text-xs">
+          {disponibles}/{cabañaSeleccionada?.capacidad || 1}
+        </div>
+      </div>
+    );
+  };
 
   const onSubmit = async (data) => {
     setLoading(true);
@@ -87,23 +142,11 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
     }
   };
 
-  const dayClassName = (date) => {
-    return reservedDates.some((d) => d.toDateString() === date.toDateString())
-      ? "bg-red-100 text-red-500"
-      : undefined;
-  };
-
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
         Reserva tu Cabaña
       </h2>
-
-      {success && (
-        <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
-          ¡Reserva realizada con éxito! Te contactaremos pronto para confirmar.
-        </div>
-      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -225,6 +268,7 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Selecciona fecha"
                 dayClassName={dayClassName}
+                renderDayContents={renderDayContents}
                 selectsStart
                 startDate={fechaInicio}
                 endDate={fechaFin}
@@ -245,6 +289,7 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
                 dateFormat="dd/MM/yyyy"
                 placeholderText="Selecciona fecha"
                 dayClassName={dayClassName}
+                renderDayContents={renderDayContents}
                 selectsEnd
                 startDate={fechaInicio}
                 endDate={fechaFin}
@@ -264,6 +309,12 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
               : ""
           }`}
         >
+          {success && (
+            <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+              ¡Reserva realizada con éxito! Te contactaremos pronto para
+              confirmar.
+            </div>
+          )}
           {loading ? (
             <span className="flex items-center justify-center">
               <svg

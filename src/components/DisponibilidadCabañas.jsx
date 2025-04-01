@@ -5,8 +5,9 @@ const DisponibilidadCabanas = () => {
   const [cabañas, setCabañas] = useState([]);
   const [selectedCabaña, setSelectedCabaña] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const [reservedDates, setReservedDates] = useState([]);
+  const [reservedDates, setReservedDates] = useState({});
   const [loading, setLoading] = useState(true);
+  const [capacidadTotal, setCapacidadTotal] = useState(1);
 
   // Obtener todas las cabañas
   useEffect(() => {
@@ -38,6 +39,17 @@ const DisponibilidadCabanas = () => {
     const fetchReservedDates = async () => {
       try {
         setLoading(true);
+
+        // Primero, obtener capacidad de la cabaña seleccionada
+        const { data: cabañaData } = await supabase
+          .from("cabañas")
+          .select("capacidad")
+          .eq("id", selectedCabaña)
+          .single();
+
+        const capacidadTotal = cabañaData?.capacidad || 1;
+
+        // Luego, obtener las reservas
         const { data, error } = await supabase
           .from("reservas")
           .select("fecha_inicio, fecha_fin")
@@ -45,18 +57,22 @@ const DisponibilidadCabanas = () => {
 
         if (error) throw error;
 
-        const dates = data.flatMap((reserva) => {
+        // Crear un mapa de fechas con contador de reservas
+        const reservasPorFecha = {};
+
+        data.forEach((reserva) => {
           const start = new Date(reserva.fecha_inicio);
           const end = new Date(reserva.fecha_fin);
-          const dates = [];
 
           for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            dates.push(new Date(d));
+            const dateString = d.toISOString().split("T")[0];
+            reservasPorFecha[dateString] =
+              (reservasPorFecha[dateString] || 0) + 1;
           }
-          return dates;
         });
 
-        setReservedDates(dates);
+        setReservedDates(reservasPorFecha);
+        setCapacidadTotal(capacidadTotal);
       } catch (err) {
         console.error("Error fetching reserved dates:", err);
       } finally {
@@ -73,10 +89,17 @@ const DisponibilidadCabanas = () => {
     if (date < today) {
       return "past";
     }
-    if (reservedDates.some((d) => d.toDateString() === date.toDateString())) {
-      return "reserved";
+
+    const dateString = date.toISOString().split("T")[0];
+    const reservasEnFecha = reservedDates[dateString] || 0;
+
+    if (reservasEnFecha >= capacidadTotal) {
+      return "full"; // Completamente reservada
     }
-    return "available";
+    if (reservasEnFecha > 0) {
+      return "partial"; // Parcialmente reservada
+    }
+    return "available"; // Completamente disponible
   };
 
   // Cambiar mes
@@ -86,17 +109,7 @@ const DisponibilidadCabanas = () => {
     setCurrentMonth(newMonth);
   };
 
-  // Verificar si una fecha está reservada
-  const isDateReserved = (date) => {
-    return reservedDates.some((d) => d.toDateString() === date.toDateString());
-  };
-
-  // Ajustar día de la semana (0=Lunes, 6=Domingo)
-  const getAdjustedDay = (date) => {
-    return (date.getDay() + 6) % 7;
-  };
-
-  // Generar días del calendario
+  // Renderizar celdas del calendario con información de disponibilidad
   const renderCalendarDays = () => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
@@ -112,8 +125,11 @@ const DisponibilidadCabanas = () => {
       const isCurrentMonth = day.getMonth() === month;
       const dayStatus = getDayStatus(day);
       const isToday = day.toDateString() === new Date().toDateString();
+      const dateString = day.toISOString().split("T")[0];
+      const reservasEnFecha = reservedDates[dateString] || 0;
+      const disponibles = capacidadTotal - reservasEnFecha;
 
-      let dayClass = "p-2 border rounded text-center ";
+      let dayClass = "p-2 border rounded text-center relative ";
 
       if (!isCurrentMonth) {
         dayClass += "text-gray-400 bg-gray-50";
@@ -122,8 +138,11 @@ const DisponibilidadCabanas = () => {
           case "past":
             dayClass += "bg-gray-200 text-gray-500";
             break;
-          case "reserved":
+          case "full":
             dayClass += "bg-red-100 text-red-500";
+            break;
+          case "partial":
+            dayClass += "bg-orange-100 text-orange-500";
             break;
           case "available":
             dayClass += "bg-green-100 text-green-700";
@@ -135,9 +154,23 @@ const DisponibilidadCabanas = () => {
         dayClass += " border-2 border-blue-500 font-bold";
       }
 
+      // Agregar contenido de la celda
+      const content = (
+        <div className="h-full flex flex-col justify-between">
+          <span>{day.getDate()}</span>
+          {isCurrentMonth && dayStatus !== "past" && (
+            <span className="text-xs mt-1">
+              {dayStatus === "full"
+                ? "Completo"
+                : `${disponibles}/${capacidadTotal}`}
+            </span>
+          )}
+        </div>
+      );
+
       days.push(
         <div key={i} className={dayClass}>
-          {day.getDate()}
+          {content}
         </div>
       );
     }
@@ -234,14 +267,18 @@ const DisponibilidadCabanas = () => {
               {renderCalendarDays()}
             </div>
 
-            <div className="flex justify-center mt-6 space-x-6">
+            <div className="flex justify-center mt-6 space-x-4">
               <div className="flex items-center">
                 <div className="w-4 h-4 bg-green-100 border border-green-300 mr-2"></div>
                 <span className="text-sm">Disponible</span>
               </div>
               <div className="flex items-center">
+                <div className="w-4 h-4 bg-orange-100 border border-orange-300 mr-2"></div>
+                <span className="text-sm">Parcialmente reservado</span>
+              </div>
+              <div className="flex items-center">
                 <div className="w-4 h-4 bg-red-100 border border-red-300 mr-2"></div>
-                <span className="text-sm">Reservado</span>
+                <span className="text-sm">Completo</span>
               </div>
             </div>
           </>

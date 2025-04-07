@@ -13,6 +13,9 @@ export default defineConfig({
   adapter: vercel(),
   vite: {
     plugins: [tailwindcss()],
+    optimizeDeps: {
+      include: ["react-datepicker"],
+    },
   },
 
   integrations: [react()],

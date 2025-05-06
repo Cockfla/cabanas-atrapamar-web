@@ -7,21 +7,67 @@ const fotosPichilemu = [
   { src: "/pichi4.webp", alt: "Olas de Pichilemu" },
   { src: "/pichi5.jpg", alt: "Atardecer en Pichilemu" },
 ];
+
+const fotosLaSerena = [
+  { src: "/laserena1.jpg", alt: "Playa de La Serena" },
+  { src: "/laserena2.jpg", alt: "Faro de La Serena" },
+  { src: "/laserena3.jpg", alt: "Centro de La Serena" },
+];
+
+// Coordenadas de las ubicaciones
+const ubicaciones = {
+  pichilemu: {
+    lat: -34.39491810022256,
+    lng: -72.0175572211526,
+    direccion: "Avenida Comercio con pasaje La Estrella #230, Pichilemu",
+    titulo: "Pichilemu, Capital mundial del Surf",
+    descripcion:
+      "Disfruta de nuestras playas de clase mundial y la vibrante cultura surfista. Ubicación privilegiada a 10 minutos caminando del Centro y la Playa Principal",
+  },
+  laSerena: {
+    lat: -29.88078890889562,
+    lng: -71.27019554525707,
+    direccion: "Marejadas 658, Caleta San Pedro, La Serena",
+    titulo: "La Serena, Ciudad de los Campanarios",
+    descripcion:
+      "Disfruta de las hermosas playas y la rica cultura nortina. Ubicación privilegiada frente al mar y cerca de todos los servicios",
+  },
+};
 ---
 
 <section class="flex flex-col items-center justify-center mt-4">
   <h1
     class="text-3xl font-bold text-gray-900 mb-6 border-b-4 border-red-500 pb-2"
   >
-    Ubicación
+    Ubicaciones
   </h1>
 
-  <!-- Contenedor unificado para carrusel y mapa -->
-  <div class="w-full max-w-6xl px-4 mb-8">
+  <!-- Pestañas para seleccionar ubicación -->
+  <div class="flex mb-8">
+    <button
+      id="tab-pichilemu"
+      class="px-6 py-2 font-medium text-white bg-red-500 rounded-l-lg focus:outline-none"
+      onclick="showLocation('pichilemu')"
+    >
+      Pichilemu
+    </button>
+    <button
+      id="tab-laserena"
+      class="px-6 py-2 font-medium text-gray-700 bg-gray-200 rounded-r-lg focus:outline-none"
+      onclick="showLocation('laserena')"
+    >
+      La Serena
+    </button>
+  </div>
+
+  <!-- Contenedor para Pichilemu -->
+  <div
+    id="pichilemu-container"
+    class="w-full max-w-6xl px-4 mb-8 location-container"
+  >
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-      <!-- Grid para disposición responsive -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
-        <!-- Carrusel (ocupará toda la columna en móvil, mitad en desktop) -->
+        <!-- Carrusel Pichilemu -->
         <div
           class="relative w-full aspect-video lg:aspect-auto lg:h-full overflow-hidden"
         >
@@ -83,66 +129,225 @@ const fotosPichilemu = [
           </button>
         </div>
 
-        <!-- Mapa (ocupará toda la columna en móvil, mitad en desktop) -->
+        <!-- Mapa Pichilemu -->
         <div class="h-full min-h-[300px] lg:min-h-full">
           <div class="h-full w-full">
-            <Map client:only="react" />
+            <Map
+              client:only="react"
+              lat={ubicaciones.pichilemu.lat}
+              lng={ubicaciones.pichilemu.lng}
+              titulo="Cabañas Atrapa Mar Pichilemu"
+            />
           </div>
         </div>
       </div>
 
-      <!-- Texto descriptivo debajo del grid -->
+      <!-- Texto descriptivo Pichilemu -->
       <div class="p-6 text-center bg-red-400 text-white">
         <h2 class="text-2xl font-bold mb-2">
-          Estamos ubicados en Pichilemu, Capital mundial del Surf
+          {ubicaciones.pichilemu.titulo}
         </h2>
-        <p class="text-lg mb-2">
-          Disfruta de nuestras playas de clase mundial y la vibrante cultura
-          surfista
-        </p>
         <p class="text-lg">
-          Ubicación privilegiada a 10 minutos caminando del Centro y la Playa
-          Principal
+          {ubicaciones.pichilemu.descripcion}
         </p>
       </div>
     </div>
   </div>
 
-  <!-- Sección de dirección -->
+  <!-- Contenedor para La Serena -->
+  <div
+    id="laserena-container"
+    class="w-full max-w-6xl px-4 mb-8 location-container hidden"
+  >
+    <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
+        <!-- Carrusel La Serena -->
+        <div
+          class="relative w-full aspect-video lg:aspect-auto lg:h-full overflow-hidden"
+        >
+          <div
+            class="flex transition-transform duration-500 laserena-carousel h-full"
+            style={`width: ${fotosLaSerena.length * 100}%;`}
+          >
+            {
+              fotosLaSerena.map((foto) => (
+                <div
+                  class="flex-shrink-0 h-full"
+                  style={`width: ${100 / fotosLaSerena.length}%;`}
+                >
+                  <img
+                    src={foto.src}
+                    alt={foto.alt}
+                    class="w-full h-full object-cover"
+                  />
+                </div>
+              ))
+            }
+          </div>
+          <!-- Botones de navegación -->
+          <button
+            class="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full laserena-prev"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path d="M13 20l-3 -8l3 -8"></path>
+            </svg>
+          </button>
+          <button
+            class="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 text-white p-2 rounded-full laserena-next"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path d="M11 4l3 8l-3 8"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Mapa La Serena -->
+        <div class="h-full min-h-[300px] lg:min-h-full">
+          <div class="h-full w-full">
+            <Map
+              client:only="react"
+              lat={ubicaciones.laSerena.lat}
+              lng={ubicaciones.laSerena.lng}
+              titulo="Cabañas Atrapa Mar La Serena"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Texto descriptivo La Serena -->
+      <div class="p-6 text-center bg-blue-400 text-white">
+        <h2 class="text-2xl font-bold mb-2">
+          {ubicaciones.laSerena.titulo}
+        </h2>
+        <p class="text-lg">
+          {ubicaciones.laSerena.descripcion}
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sección de dirección (dinámica) -->
   <div class="w-full max-w-3xl px-4">
-    <div class="bg-red-400 text-white p-6 rounded-lg text-center">
-      <p class="text-lg font-semibold">Dirección exacta:</p>
-      <p class="text-xl">Avenida Comercio con pasaje La Estrella #230</p>
+    <div
+      id="pichilemu-direccion"
+      class="bg-red-400 text-white p-6 rounded-lg text-center"
+    >
+      <p class="text-lg font-semibold">Dirección exacta en Pichilemu:</p>
+      <p class="text-xl">{ubicaciones.pichilemu.direccion}</p>
+    </div>
+    <div
+      id="laserena-direccion"
+      class="bg-blue-400 text-white p-6 rounded-lg text-center hidden"
+    >
+      <p class="text-lg font-semibold">Dirección exacta en La Serena:</p>
+      <p class="text-xl">{ubicaciones.laSerena.direccion}</p>
     </div>
   </div>
 </section>
 
-<script>
+<script is:inline>
+  // Movemos el script dentro del componente con is:inline para que funcione en Astro
   document.addEventListener("DOMContentLoaded", () => {
-    const pichilemuCarousel = document.querySelector(".pichilemu-carousel");
-    const pichilemuPrev = document.querySelector(".pichilemu-prev");
-    const pichilemuNext = document.querySelector(".pichilemu-next");
+    // Inicializar carruseles
+    initCarousel(".pichilemu-carousel", ".pichilemu-prev", ".pichilemu-next");
+    initCarousel(".laserena-carousel", ".laserena-prev", ".laserena-next");
 
-    if (pichilemuCarousel) {
-      const slides = pichilemuCarousel.querySelectorAll("div");
+    // Mostrar Pichilemu por defecto
+    showLocation("pichilemu");
+  });
+
+  function initCarousel(carouselSelector, prevSelector, nextSelector) {
+    const carousel = document.querySelector(carouselSelector);
+    const prev = document.querySelector(prevSelector);
+    const next = document.querySelector(nextSelector);
+
+    if (carousel) {
+      const slides = carousel.querySelectorAll("div");
       let currentIndex = 0;
 
-      function updatePichilemuCarousel() {
-        if (pichilemuCarousel) {
-          (pichilemuCarousel as HTMLElement).style.transform =
-            `translateX(-${currentIndex * (100 / slides.length)}%)`;
-        }
+      function updateCarousel() {
+        carousel.style.transform = `translateX(-${currentIndex * (100 / slides.length)}%)`;
       }
 
-      pichilemuNext?.addEventListener("click", () => {
+      next?.addEventListener("click", () => {
         currentIndex = (currentIndex + 1) % slides.length;
-        updatePichilemuCarousel();
+        updateCarousel();
       });
 
-      pichilemuPrev?.addEventListener("click", () => {
+      prev?.addEventListener("click", () => {
         currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-        updatePichilemuCarousel();
+        updateCarousel();
       });
     }
-  });
+  }
+
+  // Hacemos la función global para que sea accesible desde los botones
+  window.showLocation = function (location) {
+    // Ocultar todos los contenedores
+    document.querySelectorAll(".location-container").forEach((el) => {
+      el.classList.add("hidden");
+    });
+
+    // Ocultar todas las direcciones
+    document.querySelectorAll('[id$="-direccion"]').forEach((el) => {
+      el.classList.add("hidden");
+    });
+
+    // Resetear pestañas
+    document
+      .getElementById("tab-pichilemu")
+      .classList.remove("bg-red-500", "text-white");
+    document
+      .getElementById("tab-pichilemu")
+      .classList.add("bg-gray-200", "text-gray-700");
+    document
+      .getElementById("tab-laserena")
+      .classList.remove("bg-blue-500", "text-white");
+    document
+      .getElementById("tab-laserena")
+      .classList.add("bg-gray-200", "text-gray-700");
+
+    // Mostrar la seleccionada
+    if (location === "pichilemu") {
+      document.getElementById("pichilemu-container").classList.remove("hidden");
+      document.getElementById("pichilemu-direccion").classList.remove("hidden");
+      document
+        .getElementById("tab-pichilemu")
+        .classList.remove("bg-gray-200", "text-gray-700");
+      document
+        .getElementById("tab-pichilemu")
+        .classList.add("bg-red-500", "text-white");
+    } else {
+      document.getElementById("laserena-container").classList.remove("hidden");
+      document.getElementById("laserena-direccion").classList.remove("hidden");
+      document
+        .getElementById("tab-laserena")
+        .classList.remove("bg-gray-200", "text-gray-700");
+      document
+        .getElementById("tab-laserena")
+        .classList.add("bg-blue-500", "text-white");
+    }
+  };
 </script>

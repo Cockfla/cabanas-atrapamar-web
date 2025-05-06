@@ -1,10 +1,9 @@
-// Map.astro
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
 // Solución para el icono del marcador
-delete L.Icon.Default.prototype._getIconUrl;
+delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png",
@@ -14,10 +13,16 @@ L.Icon.Default.mergeOptions({
     "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png",
 });
 
-export default function Map() {
+interface Props {
+  lat: number;
+  lng: number;
+  titulo: string;
+}
+
+export default function Map({ lat, lng, titulo }: Props) {
   return (
     <MapContainer
-      center={[-34.39491810022256, -72.0175572211526]}
+      center={[lat, lng]}
       zoom={16}
       scrollWheelZoom={false}
       style={{ height: "400px", width: "100%" }}
@@ -27,7 +32,7 @@ export default function Map() {
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
-      <Marker position={[-34.39491810022256, -72.0175572211526]}>
+      <Marker position={[lat, lng]}>
         <Popup>
           <div className="flex flex-col items-center justify-center">
             <img
@@ -35,7 +40,7 @@ export default function Map() {
               width={50}
               alt="Logo Cabañas Atrapa Mar"
             />
-            <b>Cabañas Atrapa Mar</b>
+            <b>{titulo}</b>
           </div>
         </Popup>
       </Marker>

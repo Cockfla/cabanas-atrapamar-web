@@ -15,6 +15,7 @@ const AdminReservas = () => {
     cabaña_id: "",
     fecha_inicio: "",
     fecha_fin: "",
+    ubicacion: "",
   });
 
   // Form state
@@ -36,7 +37,7 @@ const AdminReservas = () => {
         // Fetch cabañas
         const { data: cabañasData, error: cabañasError } = await supabase
           .from("cabañas")
-          .select("*")
+          .select("*, ubicacion")
           .order("nombre", { ascending: true });
 
         if (cabañasError) throw cabañasError;
@@ -61,10 +62,10 @@ const AdminReservas = () => {
         .select(
           `
           *,
-          cabañas: cabaña_id (nombre, precio)
+          cabañas: cabaña_id (nombre, precio, ubicacion)
         `
         )
-        .order("fecha_inicio", { ascending: true });
+        .order("fecha_inicio", { ascending: false });
 
       // Apply filters
       if (filters.cabaña_id) {
@@ -75,6 +76,19 @@ const AdminReservas = () => {
       }
       if (filters.fecha_fin) {
         query = query.lte("fecha_fin", filters.fecha_fin);
+      }
+      // Si hay filtro de ubicación, lo aplicamos a través de la relación con cabañas
+      if (filters.ubicacion) {
+        // Primero obtenemos los IDs de cabañas que coinciden con la ubicación
+        const { data: cabañasIds } = await supabase
+          .from("cabañas")
+          .select("id")
+          .eq("ubicacion", filters.ubicacion);
+
+        if (cabañasIds && cabañasIds.length > 0) {
+          const ids = cabañasIds.map((c) => c.id);
+          query = query.in("cabaña_id", ids);
+        }
       }
 
       const { data, error } = await query;
@@ -109,17 +123,34 @@ const AdminReservas = () => {
     try {
       setLoading(true);
 
+      // Crear objeto con los datos del formulario
+      const reservaData = {
+        ...formData,
+        created_at: new Date().toISOString(), // Agregar timestamp con zona horaria en formato ISO
+      };
+
       if (editMode) {
-        // Update existing reserva
+        // Update existing reserva (sin modificar created_at)
+        const { nombre, email, telefono, cabaña_id, fecha_inicio, fecha_fin } =
+          formData;
+        const updateData = {
+          nombre,
+          email,
+          telefono,
+          cabaña_id,
+          fecha_inicio,
+          fecha_fin,
+        };
+
         const { error } = await supabase
           .from("reservas")
-          .update(formData)
+          .update(updateData)
           .eq("id", currentReserva.id);
 
         if (error) throw error;
       } else {
-        // Create new reserva
-        const { error } = await supabase.from("reservas").insert([formData]);
+        // Create new reserva (con created_at)
+        const { error } = await supabase.from("reservas").insert([reservaData]);
 
         if (error) throw error;
       }
@@ -197,9 +228,15 @@ const AdminReservas = () => {
       cabaña_id: "",
       fecha_inicio: "",
       fecha_fin: "",
+      ubicacion: "",
     });
     fetchReservas();
   };
+
+  // Obtener ubicaciones únicas para el filtro
+  const ubicaciones = [
+    ...new Set(cabañas.map((c) => c.ubicacion).filter(Boolean)),
+  ];
 
   if (loading && reservas.length === 0) {
     return (
@@ -218,17 +255,37 @@ const AdminReservas = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold text-gray-800 mb-8">
+    <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-8 bg-neutral-100 sm:bg-neutral-300">
+      <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-4 sm:mb-8">
         Administración de Reservas
       </h1>
 
-      {/* Filtros */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <h2 className="text-xl font-semibold text-gray-700 mb-4">
+      {/* Filtros - Adaptado para móvil */}
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-3 sm:mb-4">
           Filtrar Reservas
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ubicación
+            </label>
+            <select
+              className="w-full p-2 border border-gray-300 rounded-md"
+              value={filters.ubicacion}
+              onChange={(e) =>
+                setFilters({ ...filters, ubicacion: e.target.value })
+              }
+            >
+              <option value="">Todas</option>
+              {ubicaciones.map((ubicacion) => (
+                <option key={ubicacion} value={ubicacion}>
+                  {ubicacion === "Serena" ? "La Serena" : ubicacion}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Cabaña
@@ -241,11 +298,15 @@ const AdminReservas = () => {
               }
             >
               <option value="">Todas</option>
-              {cabañas.map((cabaña) => (
-                <option key={cabaña.id} value={cabaña.id}>
-                  {cabaña.nombre}
-                </option>
-              ))}
+              {cabañas
+                .filter(
+                  (c) => !filters.ubicacion || c.ubicacion === filters.ubicacion
+                )
+                .map((cabaña) => (
+                  <option key={cabaña.id} value={cabaña.id}>
+                    {cabaña.nombre}
+                  </option>
+                ))}
             </select>
           </div>
           <div>
@@ -274,16 +335,16 @@ const AdminReservas = () => {
               }
             />
           </div>
-          <div className="flex items-end space-x-2">
+          <div className="flex items-end gap-2 sm:flex-col md:flex-row">
             <button
               onClick={applyFilters}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm sm:text-base"
             >
               Aplicar
             </button>
             <button
               onClick={resetFilters}
-              className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded-md"
+              className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-2 rounded-md text-sm sm:text-base"
             >
               Limpiar
             </button>
@@ -292,14 +353,14 @@ const AdminReservas = () => {
       </div>
 
       {/* Botón para nueva reserva */}
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-end mb-4 sm:mb-6">
         <button
           onClick={openModal}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center"
+          className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md flex items-center text-sm sm:text-base"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-5 w-5 mr-2"
+            className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
             viewBox="0 0 20 20"
             fill="currentColor"
           >
@@ -313,25 +374,32 @@ const AdminReservas = () => {
         </button>
       </div>
 
-      {/* Lista de reservas */}
+      {/* Lista de reservas - Adaptada para móvil */}
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Vista para desktop */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Cliente
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Cabaña
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Ubicación
+                </th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Fechas
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Contacto
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Fecha de Reserva
+                </th>
+                <th className="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Acciones
                 </th>
               </tr>
@@ -340,12 +408,12 @@ const AdminReservas = () => {
               {reservas.length > 0 ? (
                 reservas.map((reserva) => (
                   <tr key={reserva.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="font-medium text-gray-900">
                         {reserva.nombre}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="text-gray-900">
                         {reserva.cabañas?.nombre}
                       </div>
@@ -353,24 +421,44 @@ const AdminReservas = () => {
                         ${reserva.cabañas?.precio}/noche
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="text-gray-900">
-                        {format(new Date(reserva.fecha_inicio), "PPP", {
+                        {reserva.cabañas?.ubicacion === "Serena"
+                          ? "La Serena"
+                          : reserva.cabañas?.ubicacion}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className="text-gray-900">
+                        {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
                           locale: es,
                         })}
                       </div>
                       <div className="text-gray-500">
                         al{" "}
-                        {format(new Date(reserva.fecha_fin), "PPP", {
+                        {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
                           locale: es,
                         })}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="text-gray-900">{reserva.email}</div>
                       <div className="text-gray-500">{reserva.telefono}</div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                      <div className="text-gray-900">
+                        {reserva.created_at
+                          ? format(
+                              parseISO(reserva.created_at),
+                              "dd/MM/yyyy HH:mm",
+                              {
+                                locale: es,
+                              }
+                            )
+                          : "N/A"}
+                      </div>
+                    </td>
+                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
                       <button
                         onClick={() => handleEdit(reserva)}
                         className="text-blue-600 hover:text-blue-900 mr-4"
@@ -389,8 +477,8 @@ const AdminReservas = () => {
               ) : (
                 <tr>
                   <td
-                    colSpan="5"
-                    className="px-6 py-4 text-center text-gray-500"
+                    colSpan="7"
+                    className="px-4 sm:px-6 py-4 text-center text-gray-500"
                   >
                     No se encontraron reservas
                   </td>
@@ -399,15 +487,109 @@ const AdminReservas = () => {
             </tbody>
           </table>
         </div>
+
+        {/* Vista para móvil - Tarjetas en lugar de tabla */}
+        <div className="md:hidden">
+          {reservas.length > 0 ? (
+            <div className="divide-y divide-gray-200">
+              {reservas.map((reserva) => (
+                <div key={reserva.id} className="p-4 hover:bg-gray-50">
+                  <div className="flex justify-between mb-2">
+                    <h3 className="font-bold text-gray-900">
+                      {reserva.nombre}
+                    </h3>
+                    <span className="text-sm bg-gray-100 text-gray-800 py-1 px-2 rounded-full">
+                      {reserva.cabañas?.ubicacion === "Serena"
+                        ? "La Serena"
+                        : reserva.cabañas?.ubicacion}
+                    </span>
+                  </div>
+
+                  <div className="mb-2">
+                    <span className="text-gray-600 font-medium">Cabaña:</span>{" "}
+                    <span className="text-gray-900">
+                      {reserva.cabañas?.nombre}
+                    </span>
+                    <span className="block text-sm text-gray-500">
+                      ${reserva.cabañas?.precio}/noche
+                    </span>
+                  </div>
+
+                  <div className="mb-2">
+                    <span className="text-gray-600 font-medium">Fechas:</span>{" "}
+                    <span className="text-gray-900">
+                      {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
+                        locale: es,
+                      })}
+                    </span>
+                    <span className="text-gray-500">
+                      {" "}
+                      al{" "}
+                      {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
+                        locale: es,
+                      })}
+                    </span>
+                  </div>
+
+                  <div className="mb-2">
+                    <span className="text-gray-600 font-medium">Contacto:</span>{" "}
+                    <div>
+                      <span className="text-gray-900">{reserva.email}</span>
+                      <span className="block text-gray-500">
+                        {reserva.telefono}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mb-3">
+                    <span className="text-gray-600 font-medium">
+                      Reserva realizada:
+                    </span>{" "}
+                    <span className="text-gray-900">
+                      {reserva.created_at
+                        ? format(
+                            parseISO(reserva.created_at),
+                            "dd/MM/yyyy HH:mm",
+                            {
+                              locale: es,
+                            }
+                          )
+                        : "N/A"}
+                    </span>
+                  </div>
+
+                  <div className="flex space-x-3 mt-3 pt-3 border-t border-gray-100">
+                    <button
+                      onClick={() => handleEdit(reserva)}
+                      className="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-2 rounded-md text-center font-medium"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(reserva.id)}
+                      className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-md text-center font-medium"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-6 text-center text-gray-500">
+              No se encontraron reservas
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modal para crear/editar reserva */}
       {modalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-gray-800">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 sm:p-6">
+              <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
                   {editMode ? "Editar Reserva" : "Nueva Reserva"}
                 </h2>
                 <button
@@ -415,7 +597,7 @@ const AdminReservas = () => {
                   className="text-gray-400 hover:text-gray-500"
                 >
                   <svg
-                    className="h-6 w-6"
+                    className="h-5 w-5 sm:h-6 sm:w-6"
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -437,7 +619,7 @@ const AdminReservas = () => {
               )}
 
               <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                       Nombre completo
@@ -479,6 +661,26 @@ const AdminReservas = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Ubicación
+                    </label>
+                    <select
+                      name="ubicacion"
+                      value={filters.ubicacion}
+                      onChange={(e) =>
+                        setFilters({ ...filters, ubicacion: e.target.value })
+                      }
+                      className="w-full p-2 border border-gray-300 rounded-md"
+                    >
+                      <option value="">Seleccionar ubicación</option>
+                      {ubicaciones.map((ubicacion) => (
+                        <option key={ubicacion} value={ubicacion}>
+                          {ubicacion === "Serena" ? "La Serena" : ubicacion}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
                       Cabaña
                     </label>
                     <select
@@ -489,11 +691,21 @@ const AdminReservas = () => {
                       required
                     >
                       <option value="">Seleccionar cabaña</option>
-                      {cabañas.map((cabaña) => (
-                        <option key={cabaña.id} value={cabaña.id}>
-                          {cabaña.nombre}
-                        </option>
-                      ))}
+                      {cabañas
+                        .filter(
+                          (c) =>
+                            !filters.ubicacion ||
+                            c.ubicacion === filters.ubicacion
+                        )
+                        .map((cabaña) => (
+                          <option key={cabaña.id} value={cabaña.id}>
+                            {cabaña.nombre} (
+                            {cabaña.ubicacion === "Serena"
+                              ? "La Serena"
+                              : cabaña.ubicacion}
+                            )
+                          </option>
+                        ))}
                     </select>
                   </div>
                   <div>
@@ -505,7 +717,10 @@ const AdminReservas = () => {
                       name="fecha_inicio"
                       value={formData.fecha_inicio}
                       onChange={(e) =>
-                        handleDateChange("fecha_inicio", e.target.value)
+                        setFormData({
+                          ...formData,
+                          fecha_inicio: e.target.value,
+                        })
                       }
                       className="w-full p-2 border border-gray-300 rounded-md"
                       required
@@ -520,7 +735,7 @@ const AdminReservas = () => {
                       name="fecha_fin"
                       value={formData.fecha_fin}
                       onChange={(e) =>
-                        handleDateChange("fecha_fin", e.target.value)
+                        setFormData({ ...formData, fecha_fin: e.target.value })
                       }
                       className="w-full p-2 border border-gray-300 rounded-md"
                       required
@@ -528,17 +743,17 @@ const AdminReservas = () => {
                   </div>
                 </div>
 
-                <div className="mt-6 flex justify-end space-x-3">
+                <div className="mt-6 flex flex-col sm:flex-row justify-end gap-3">
                   <button
                     type="button"
                     onClick={closeModal}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50"
+                    className="w-full sm:w-auto px-4 py-2 border border-gray-300 rounded-md text-gray-700 bg-white hover:bg-gray-50 order-2 sm:order-1"
                   >
                     Cancelar
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+                    className="w-full sm:w-auto px-4 py-2 border border-transparent rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 order-1 sm:order-2"
                     disabled={loading}
                   >
                     {loading ? (

@@ -3,9 +3,12 @@ import { useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { supabase } from "../db/supabaseClient";
-import { set } from "date-fns";
 
-const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
+const ReservaForm = ({
+  cabañas,
+  onCheckDisponibilidad,
+  ubicacion = "Pichilemu",
+}) => {
   const {
     register,
     handleSubmit,
@@ -117,14 +120,23 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
   const onSubmit = async (data) => {
     setLoading(true);
     try {
+      // Formatear las fechas correctamente en YYYY-MM-DD
+      const formatearFecha = (fecha) => {
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, "0");
+        const day = String(fecha.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
+
       const { error } = await supabase.from("reservas").insert([
         {
           nombre: data.nombre,
           email: data.email,
           telefono: data.telefono,
           cabaña_id: data.cabaña_id,
-          fecha_inicio: fechaInicio.toISOString().split("T")[0],
-          fecha_fin: fechaFin.toISOString().split("T")[0],
+          fecha_inicio: formatearFecha(fechaInicio),
+          fecha_fin: formatearFecha(fechaFin),
+          created_at: new Date().toISOString(), // Agregar timestamp con zona horaria
         },
       ]);
 
@@ -143,10 +155,16 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+    <div className="max-w-4xl mx-auto bg-gray-200 rounded-xl shadow-md overflow-hidden p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Reserva tu Cabaña
+        {ubicacion ? `Reserva tu Cabaña en ${ubicacion}` : "Reserva tu Cabaña"}
       </h2>
+
+      {success && (
+        <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
+          ¡Reserva realizada con éxito! Te contactaremos pronto para confirmar.
+        </div>
+      )}
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -219,7 +237,7 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
 
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-1">
-              Selecciona tu cabaña
+              Selecciona tu cabaña {ubicacion ? `en ${ubicacion}` : ""}
             </label>
             <select
               {...register("cabaña_id", {
@@ -309,12 +327,6 @@ const ReservaForm = ({ cabañas, onCheckDisponibilidad }) => {
               : ""
           }`}
         >
-          {success && (
-            <div className="mb-6 p-4 bg-green-100 text-green-700 rounded-lg">
-              ¡Reserva realizada con éxito! Te contactaremos pronto para
-              confirmar.
-            </div>
-          )}
           {loading ? (
             <span className="flex items-center justify-center">
               <svg

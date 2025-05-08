@@ -2,23 +2,32 @@
 import Image from "astro/components/Image.astro";
 import { supabase } from "../db/supabaseClient";
 
-const { cookies } = Astro;
-const accessToken = cookies.get("sb-access-token")?.value;
-const refreshToken = cookies.get("sb-refresh-token")?.value;
+// Obtener props con valores predeterminados seguros
+const { location = "pichilemu" } = Astro.props;
+const cookies = Astro.cookies; // Acceso seguro a cookies como propiedad de Astro
+
+// Determinar URL de reserva basada en la ubicación
+const reservaUrl = location === "laserena" ? "/reservas?ubicacion=laserena" : "/reservas?ubicacion=pichilemu";
 
 let isAdmin = false;
 
-if (accessToken && refreshToken) {
-  try {
-    const { data: { session } } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken,
-    });
-    isAdmin = !!session;
-  } catch (error) {
-    console.error("Error verifying session:", error);
-    cookies.delete("sb-access-token", { path: "/" });
-    cookies.delete("sb-refresh-token", { path: "/" });
+// Verificar si cookies existe antes de usarlo
+if (cookies) {
+  const accessToken = cookies.get("sb-access-token")?.value;
+  const refreshToken = cookies.get("sb-refresh-token")?.value;
+
+  if (accessToken && refreshToken) {
+    try {
+      const { data: { session } } = await supabase.auth.setSession({
+        access_token: accessToken,
+        refresh_token: refreshToken,
+      });
+      isAdmin = !!session;
+    } catch (error) {
+      console.error("Error verifying session:", error);
+      cookies.delete("sb-access-token", { path: "/" });
+      cookies.delete("sb-refresh-token", { path: "/" });
+    }
   }
 }
 
@@ -26,7 +35,6 @@ if (accessToken && refreshToken) {
 
 <header class="sticky top-0 z-50 bg-white shadow-md">
   {isAdmin ? (
-    
     <div class="container mx-auto px-4">
       <div class="flex items-center justify-between py-4">
         <!-- Logo y título -->
@@ -37,13 +45,16 @@ if (accessToken && refreshToken) {
             width={50}
             height={50}
           />
-          <span class="ml-2 text-xl font-bold text-gray-800">
-            Administración Cabañas Atrapa Mar
+          <span class="ml-2 text-xl font-bold text-gray-800 hidden sm:inline-block">
+            Admin Atrapa Mar
+          </span>
+          <span class="ml-2 text-lg font-bold text-gray-800 sm:hidden">
+            Admin
           </span>
         </a>
 
-        <!-- Menú admin -->
-        <div class="flex items-center space-x-6">
+        <!-- Menú admin para escritorio -->
+        <div class="hidden sm:flex items-center space-x-6">
           <a
             href="/"
             class="text-gray-600 hover:text-red-500 font-medium"
@@ -71,17 +82,73 @@ if (accessToken && refreshToken) {
             </svg>
             Cerrar Sesión
           </a>
-          <form
-            id="logout-form"
-            action="/api/auth/signout"
-            method="POST"
-            class="hidden"
-          />
+        </div>
+        
+        <!-- Botón menú móvil para admin -->
+        <div class="sm:hidden">
+          <button
+            class="text-gray-800 focus:outline-none"
+            id="admin-menu-button"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-7 w-7"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
         </div>
       </div>
+      
+      <!-- Menú móvil para admin -->
+      <div class="sm:hidden hidden bg-white border-t" id="admin-mobile-menu">
+        <div class="px-4 py-2 space-y-3">
+          <a
+            href="/"
+            class="block py-2 text-gray-600 hover:text-red-500 font-medium"
+          >
+            Ir al Sitio Principal
+          </a>
+          <a
+            href="/logout"
+            class="py-2 text-gray-600 hover:text-red-500 font-medium flex items-center"
+            onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="w-5 h-5 mr-2"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            Cerrar Sesión
+          </a>
+        </div>
+      </div>
+
+      <form
+        id="logout-form"
+        action="/api/auth/signout"
+        method="POST"
+        class="hidden"
+      />
     </div>
   ) : (
-    <!-- Header completo para clientes -->
+    <!-- Header completo para clientes (sin cambios) -->
     <div class="container mx-auto px-4">
       <!-- Primera línea (contacto rápido) -->
       <div class="hidden md:flex justify-between items-center py-2 border-b border-gray-100 text-sm">
@@ -165,7 +232,7 @@ if (accessToken && refreshToken) {
         </a>
 
         <!-- Navegación principal -->
-        <nav class="hidden md:flex space-x-8 items-center">
+        <nav class="hidden md:flex space-x-8 items-center user-nav">
           <a href="/" class="text-gray-800 hover:text-red-500 font-medium"
             >Inicio</a
           >
@@ -182,8 +249,9 @@ if (accessToken && refreshToken) {
           >
 
           <a
-            href="/reservas"
+            href={reservaUrl}
             class="bg-red-500 hover:bg-red-600 text-white px-5 py-2 rounded-md font-medium ml-4 transition-colors"
+            data-location={location}
           >
             Reservar
           </a>
@@ -217,19 +285,16 @@ if (accessToken && refreshToken) {
     <div class="md:hidden bg-white border-t hidden" id="mobile-menu">
       <div class="px-4 py-3 space-y-3">
         <a href="/" class="block py-2 text-gray-800 hover:text-red-500">Inicio</a>
-        <a href="/cabanas" class="block py-2 text-gray-800 hover:text-red-500"
+        <a href="#cabañas" class="block py-2 text-gray-800 hover:text-red-500"
           >Cabañas</a
         >
-        <a href="/servicios" class="block py-2 text-gray-800 hover:text-red-500"
+        <a href="#servicios" class="block py-2 text-gray-800 hover:text-red-500"
           >Servicios</a
         >
-        <a href="/galeria" class="block py-2 text-gray-800 hover:text-red-500"
-          >Galería</a
-        >
-        <a href="/contacto" class="block py-2 text-gray-800 hover:text-red-500"
+        <a href="#contacto" class="block py-2 text-gray-800 hover:text-red-500"
           >Contacto</a
         >
-        <a href="/reservas" class="block py-2 text-red-500 font-medium"
+        <a href={reservaUrl} class="block py-2 text-red-500 font-medium"
           >Reservar</a
         >
       </div>
@@ -240,6 +305,7 @@ if (accessToken && refreshToken) {
 <script>
   // Script para el menú móvil con verificación de tipos
   if (typeof window !== "undefined") {
+    // Menú móvil para clientes
     const mobileMenuButton = document.getElementById("mobile-menu-button");
     const mobileMenu = document.getElementById("mobile-menu");
     
@@ -249,17 +315,27 @@ if (accessToken && refreshToken) {
       });
     }
     
+    // Menú móvil para admin
+    const adminMenuButton = document.getElementById("admin-menu-button");
+    const adminMobileMenu = document.getElementById("admin-mobile-menu");
+    
+    if (adminMenuButton && adminMobileMenu) {
+      adminMenuButton.addEventListener("click", () => {
+        adminMobileMenu.classList.toggle("hidden");
+      });
+    }
+    
     // Manejo seguro de elementos admin/user
-    const adminElements = document.querySelectorAll<HTMLElement>("[data-admin-only]");
-    const userElements = document.querySelectorAll<HTMLElement>("[data-user-only]");
+    const adminElements = document.querySelectorAll("[data-admin-only]");
+    const userElements = document.querySelectorAll("[data-user-only]");
     const isAdmin = localStorage.getItem("isAdmin") === "true";
     
-    adminElements.forEach((el: HTMLElement) => {
-      el.style.display = isAdmin ? "" : "none";
+    adminElements.forEach((el) => {
+      (el as HTMLElement).style.display = isAdmin ? "" : "none";
     });
     
-    userElements.forEach((el: HTMLElement) => {
-      el.style.display = isAdmin ? "none" : "";
+    userElements.forEach((el) => {
+      (el as HTMLElement).style.display = isAdmin ? "none" : "";
     });
   }
 </script>

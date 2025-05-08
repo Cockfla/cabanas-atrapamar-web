@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../db/supabaseClient";
 
-const DisponibilidadCabanas = () => {
+const DisponibilidadCabanas = ({ location }) => {
   const [cabañas, setCabañas] = useState([]);
   const [selectedCabaña, setSelectedCabaña] = useState(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
@@ -9,13 +9,18 @@ const DisponibilidadCabanas = () => {
   const [loading, setLoading] = useState(true);
   const [capacidadTotal, setCapacidadTotal] = useState(1);
 
-  // Obtener todas las cabañas
+  // Obtener todas las cabañas según la ubicación
   useEffect(() => {
     const fetchCabañas = async () => {
       try {
+        // Convertir location a formato adecuado para la base de datos
+        const ubicacionParam =
+          location === "laserena" ? "laserena" : "pichilemu";
+
         const { data, error } = await supabase
           .from("cabañas")
           .select("*")
+          .eq("ubicacion", ubicacionParam)
           .order("precio", { ascending: true });
 
         if (error) throw error;
@@ -30,7 +35,7 @@ const DisponibilidadCabanas = () => {
     };
 
     fetchCabañas();
-  }, []);
+  }, [location]);
 
   // Obtener fechas reservadas
   useEffect(() => {
@@ -178,10 +183,12 @@ const DisponibilidadCabanas = () => {
     return days;
   };
 
+  const ubicacionTitle = location === "laserena" ? "La Serena" : "Pichilemu";
+
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 my-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        Disponibilidad de Cabañas
+        Disponibilidad de Cabañas en {ubicacionTitle}
       </h2>
 
       <div className="mb-6">

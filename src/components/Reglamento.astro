@@ -1,7 +1,30 @@
+---
+const { location = "pichilemu" }: { location?: "pichilemu" | "laserena" } =
+  Astro.props;
+
+const colors = {
+  pichilemu: {
+    primaryColor: "red-500",
+    borderColor: "border-red-500",
+    textColor: "text-red-600",
+    bgColor: "bg-red-100",
+  },
+  laserena: {
+    primaryColor: "blue-500",
+    borderColor: "border-blue-500",
+    textColor: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+};
+const currentColors = colors[location];
+---
+
 <section class="py-16 px-4 sm:px-6 lg:px-8">
   <div class="max-w-3xl mx-auto text-center">
     <h1 class="text-4xl font-bold text-gray-900 mb-12">
-      <span class="border-b-4 border-red-500 pb-2">Reglamento</span>
+      <span class={`border-b-4 ${currentColors.borderColor} pb-2`}
+        >Reglamento</span
+      >
     </h1>
 
     <div class="bg-white rounded-xl shadow-lg overflow-hidden">
@@ -9,9 +32,11 @@
         <!-- Cada norma como un item destacado -->
         <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
           <div class="flex items-start">
-            <div class="flex-shrink-0 bg-red-100 p-2 rounded-full">
+            <div
+              class={`flex-shrink-0 ${currentColors.bgColor} p-2 rounded-full`}
+            >
               <svg
-                class="h-6 w-6 text-red-600"
+                class={`h-6 w-6 ${currentColors.textColor}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -35,9 +60,11 @@
 
         <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
           <div class="flex items-start">
-            <div class="flex-shrink-0 bg-red-100 p-2 rounded-full">
+            <div
+              class={`flex-shrink-0 ${currentColors.bgColor} p-2 rounded-full`}
+            >
               <svg
-                class="h-6 w-6 text-red-600"
+                class={`h-6 w-6 ${currentColors.textColor}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -63,9 +90,11 @@
 
         <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
           <div class="flex items-start">
-            <div class="flex-shrink-0 bg-red-100 p-2 rounded-full">
+            <div
+              class={`flex-shrink-0 ${currentColors.bgColor} p-2 rounded-full`}
+            >
               <svg
-                class="h-6 w-6 text-red-600"
+                class={`h-6 w-6 ${currentColors.textColor}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -89,9 +118,11 @@
 
         <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
           <div class="flex items-start">
-            <div class="flex-shrink-0 bg-red-100 p-2 rounded-full">
+            <div
+              class={`flex-shrink-0 ${currentColors.bgColor} p-2 rounded-full`}
+            >
               <svg
-                class="h-6 w-6 text-red-600"
+                class={`h-6 w-6 ${currentColors.textColor}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -115,9 +146,11 @@
 
         <div class="p-6 hover:bg-gray-50 transition-colors duration-200">
           <div class="flex items-start">
-            <div class="flex-shrink-0 bg-red-100 p-2 rounded-full">
+            <div
+              class=`flex-shrink-0 ${currentColors.bgColor} p-2 rounded-full`
+            >
               <svg
-                class="h-6 w-6 text-red-600"
+                class={`h-6 w-6 ${currentColors.textColor}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

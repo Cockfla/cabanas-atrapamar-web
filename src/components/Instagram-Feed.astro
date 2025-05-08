@@ -1,8 +1,29 @@
+---
+const { location = "pichilemu" }: { location?: "pichilemu" | "laserena" } =
+  Astro.props;
+
+const colors = {
+  pichilemu: {
+    primaryColor: "red-500",
+    borderColor: "border-red-500",
+    textColor: "text-red-600",
+    bgColor: "bg-red-100",
+  },
+  laserena: {
+    primaryColor: "blue-500",
+    borderColor: "border-blue-500",
+    textColor: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+};
+const currentColors = colors[location];
+---
+
 <section
   class="flex flex-col justify-center items-center bg-white text-black p-4"
 >
   <h1
-    class="text-3xl font-bold text-center mb-6 border-b-4 border-red-500 pb-2"
+    class={`text-3xl font-bold text-center mb-6 border-b-4 ${currentColors.borderColor} pb-2`}
   >
     ¡Síguenos en nuestro Instagram!
   </h1>

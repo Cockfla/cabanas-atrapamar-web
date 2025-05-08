@@ -1,4 +1,23 @@
 ---
+const { location = "pichilemu" }: { location?: "pichilemu" | "laserena" } =
+  Astro.props;
+
+const colors = {
+  pichilemu: {
+    primaryColor: "red-500",
+    borderColor: "border-red-500",
+    textColor: "text-red-600",
+    bgColor: "bg-red-100",
+  },
+  laserena: {
+    primaryColor: "blue-500",
+    borderColor: "border-blue-500",
+    textColor: "text-blue-600",
+    bgColor: "bg-blue-100",
+  },
+};
+const currentColors = colors[location];
+
 // Datos de contacto (personaliza con tus enlaces y número)
 const contacto = {
   whatsapp: "https://wa.me/56961554758", // Reemplaza con tu número de WhatsApp
@@ -12,7 +31,7 @@ const contacto = {
 <section class="flex flex-col items-center justify-center mt-4" id="contacto">
   <!-- Título con animación -->
   <h1
-    class="text-3xl font-bold text-center my-4 animate-bounce border-b-4 border-red-500 pb-2"
+    class={`text-3xl font-bold text-center my-4 animate-bounce border-b-4 ${currentColors.borderColor} pb-2`}
   >
     ¡Contáctanos!
   </h1>

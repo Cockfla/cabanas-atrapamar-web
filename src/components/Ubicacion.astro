@@ -21,6 +21,7 @@ const fotosLaSerena = [
 // Coordenadas de las ubicaciones
 const ubicaciones = {
   pichilemu: {
+    primaryColor: "red-500",
     lat: -34.39491810022256,
     lng: -72.0175572211526,
     direccion: "Avenida Comercio con pasaje La Estrella #230, Pichilemu",
@@ -32,6 +33,7 @@ const ubicaciones = {
     colorBoton: "bg-red-500",
   },
   laserena: {
+    primaryColor: "blue-500",
     lat: -29.88078890889562,
     lng: -71.27019554525707,
     direccion: "Marejadas 658, Caleta San Pedro, La Serena",
@@ -50,7 +52,7 @@ const currentLocation = ubicaciones[location ?? "pichilemu"];
 
 <section class="flex flex-col items-center justify-center mt-4" id="ubicacion">
   <h1
-    class="text-3xl font-bold text-gray-900 mb-6 border-b-4 border-red-500 pb-2"
+    class=`text-3xl font-bold text-gray-900 mb-6 border-b-4 border-${currentLocation.primaryColor} pb-2`
   >
     Ubicación
   </h1>

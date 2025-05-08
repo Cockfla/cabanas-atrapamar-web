@@ -9,6 +9,7 @@ import Contacto from "../components/Contacto.astro";
 import InstagramFeed from "../components/Instagram-Feed.astro";
 import Reglamento from "../components/Reglamento.astro";
 import DisponibilidadCabañas from "../components/DisponibilidadCabañas.jsx";
+import WhatsappWidget from "../components/WhatsappWidget.astro";
 
 export const prerender = false;
 const location = "laserena";
@@ -16,6 +17,7 @@ const location = "laserena";
 
 <Layout>
   <main>
+    <WhatsappWidget location={location} />
     <Header location={location} />
     <Main location={location} />
     <Tarifas location={location} />

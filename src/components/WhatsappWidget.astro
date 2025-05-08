@@ -1,9 +1,26 @@
 ---
 // src/components/WhatsAppWidget.astro
-const whatsappNumber = "56961554758"; // Reemplaza con tu número (sin +)
-const message =
-  "Hola, estoy interesado/a en las Cabañas Atrapamar. ¿Podrían brindarme más información?";
-const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+// Recibe la ubicación como prop
+const { location = "pichilemu" }: { location?: keyof typeof contactConfig } =
+  Astro.props || {};
+
+// Configura número y mensaje según ubicación
+const contactConfig = {
+  pichilemu: {
+    whatsappNumber: "56961554758",
+    message:
+      "Hola, estoy interesado/a en las Cabañas Atrapa Mar de Pichilemu. ¿Podrían brindarme más información?",
+  },
+  laserena: {
+    whatsappNumber: "56961554758", // Puedes usar un número diferente si es necesario
+    message:
+      "Hola, estoy interesado/a en las Cabañas Atrapa Mar de La Serena. ¿Podrían brindarme más información?",
+  },
+};
+
+// Usar configuración según ubicación
+const config = contactConfig[location] || contactConfig.pichilemu;
+const whatsappUrl = `https://wa.me/${config.whatsappNumber}?text=${encodeURIComponent(config.message)}`;
 ---
 
 <div class="fixed bottom-6 right-6 z-50">
@@ -11,7 +28,7 @@ const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(m
     href={whatsappUrl}
     target="_blank"
     rel="noopener noreferrer"
-    class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110"
+    class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 animate-pulse"
     aria-label="Contactar por WhatsApp"
   >
     <svg

@@ -1,0 +1,29 @@
+---
+import Layout from "../layouts/Layout.astro";
+import Header from "../components/Header.astro";
+import Main from "../components/Main.astro";
+import Tarifas from "../components/Tarifas.astro";
+import Ubicacion from "../components/Ubicacion.astro";
+import Servicios from "../components/Servicios.astro";
+import Contacto from "../components/Contacto.astro";
+import InstagramFeed from "../components/Instagram-Feed.astro";
+import Reglamento from "../components/Reglamento.astro";
+import DisponibilidadCabañas from "../components/DisponibilidadCabañas.jsx";
+
+export const prerender = false;
+const location = "laserena";
+---
+
+<Layout>
+  <main>
+    <Header location={location} />
+    <Main location={location} />
+    <Tarifas location={location} />
+    <Servicios location={location} />
+    <Ubicacion location={location} />
+    <DisponibilidadCabañas client:load />
+    <Contacto location={location} />
+    <InstagramFeed location={location} />
+    <Reglamento location={location} />
+  </main>
+</Layout>

@@ -1,11 +1,49 @@
 ---
 import Image from "astro/components/Image.astro";
+
+// Recibe la ubicación como prop
+const { location = "pichilemu" }: { location?: keyof typeof locationConfig } =
+  Astro.props || {};
+
+// Configura contenido e imágenes según ubicación
+const locationConfig: Record<
+  string,
+  { title: string; description: string; images: string[] }
+> = {
+  pichilemu: {
+    title: "Cabañas Atrapa Mar Pichilemu",
+    description:
+      "Bienvenidos a Cabañas Atrapa Mar Pichilemu, un lugar para disfrutar y relajarse en la capital mundial del surf.",
+    images: [
+      "/pichi-hero1.jpg",
+      "/pichi-hero2.jpg",
+      "/pichi-hero3.jpg",
+      "/pichi-hero4.jpg",
+    ],
+  },
+  laserena: {
+    title: "Cabañas Atrapa Mar La Serena",
+    description:
+      "Bienvenidos a Cabañas Atrapa Mar La Serena, un paraíso frente al mar en el norte de Chile.",
+    images: ["/laserena-hero1.jpg", "/laserena-hero2.jpg"],
+  },
+};
+
+// Usar configuración predeterminada si no se encuentra la ubicación
+const config = locationConfig[location] || locationConfig.pichilemu;
+
+// Usa las imágenes por defecto si no hay imágenes específicas disponibles
+const heroImages =
+  config.images.length > 0
+    ? config.images
+    : ["/photo1.jpg", "/photo2.jpg", "/photo3.jpg"];
 ---
 
 <main
   id="hero-section"
   class="w-full min-h-[70vh] bg-cover bg-center relative flex flex-col items-center justify-center text-white p-10 transition-all duration-2000 ease-in-out"
-  style="background-image: url('/photo1.jpg');"
+  style={`background-image: url('${heroImages[0]}');`}
+  data-location={location}
 >
   <!-- Capa difuminada -->
   <div class="absolute inset-0 bg-black/20 backdrop-blur-xs"></div>
@@ -18,25 +56,56 @@ import Image from "astro/components/Image.astro";
       width={200}
       height={200}
     />
-    <h1 class="text-4xl font-bold mt-2">Cabañas Atrapa Mar</h1>
+    <h1 class="text-4xl font-bold mt-2">{config.title}</h1>
     <p class="text-lg mt-2 max-w-xl">
-      Bienvenidos a Cabañas Atrapa Mar, un lugar para disfrutar y relajarse en
-      Pichilemu y La Serena.
+      {config.description}
     </p>
   </div>
 </main>
 
 <script>
-  const heroSection = document.getElementById("hero-section");
-  const images = ["/photo1.jpg", "/photo2.jpg", "/photo3.jpg"];
-  let currentIndex = 0;
+  document.addEventListener("DOMContentLoaded", () => {
+    const heroSection = document.getElementById("hero-section");
+    if (!heroSection) return;
 
-  function changeBackground() {
-    currentIndex = (currentIndex + 1) % images.length;
-    if (heroSection) {
-      heroSection.style.backgroundImage = `url('${images[currentIndex]}')`;
+    // Obtener la ubicación del atributo data
+    const location = (heroSection.dataset.location ||
+      "pichilemu") as keyof typeof imagesConfig;
+
+    // Definir imágenes según ubicación
+    const imagesConfig = {
+      pichilemu: ["/pichi-hero1.jpg", "/pichi-hero2.jpg", "/pichi-hero3.jpg"],
+      laserena: ["/laserena-hero1.jpg", "/laserena-hero2.jpg"],
+    };
+
+    // Usar imágenes por defecto si no hay imágenes específicas disponibles
+    const images = imagesConfig[location as keyof typeof imagesConfig] || [
+      "/photo1.jpg",
+      "/photo2.jpg",
+      "/photo3.jpg",
+    ];
+
+    let currentIndex = 0;
+
+    function changeBackground() {
+      currentIndex = (currentIndex + 1) % images.length;
+      if (heroSection) {
+        // Transición suave entre imágenes
+        heroSection.style.opacity = "0";
+
+        setTimeout(() => {
+          heroSection.style.backgroundImage = `url('${images[currentIndex]}')`;
+          heroSection.style.opacity = "1";
+        }, 500);
+      }
     }
-  }
 
-  setInterval(changeBackground, 3000);
+    // Configurar el estilo inicial de transición
+    if (heroSection) {
+      heroSection.style.transition = "opacity 0.5s ease-in-out";
+    }
+
+    // Cambiar imagen cada 5 segundos
+    setInterval(changeBackground, 5000);
+  });
 </script>

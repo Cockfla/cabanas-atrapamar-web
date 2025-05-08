@@ -1,23 +1,74 @@
+---
+// Recibir la ubicación como prop
+const { location = "pichilemu" } = Astro.props as {
+  location?: "pichilemu" | "laserena";
+};
+
+// Configuración según ubicación
+const locationConfig: Record<
+  "pichilemu" | "laserena",
+  {
+    borderColor: string;
+    primaryBg: string;
+    primaryText: string;
+    title: string;
+    cabanas: string[];
+    showPichilemu: boolean;
+    showLaserena: boolean;
+  }
+> = {
+  pichilemu: {
+    borderColor: "border-red-500",
+    primaryBg: "bg-red-100",
+    primaryText: "text-red-600",
+    title: "Cabañas en Pichilemu",
+    cabanas: [
+      "Cabaña para 2 personas",
+      "Cabaña para 4 personas",
+      "Cabaña para 5 personas",
+      "Cabaña para 6 personas",
+      "Cabaña para 8 personas",
+    ],
+    showPichilemu: true,
+    showLaserena: false,
+  },
+  laserena: {
+    borderColor: "border-blue-500",
+    primaryBg: "bg-blue-100",
+    primaryText: "text-blue-600",
+    title: "Cabañas en La Serena",
+    cabanas: ["Cabaña El Faro (7-8 personas)", "Cabaña El Valle (4 personas)"],
+    showPichilemu: false,
+    showLaserena: true,
+  },
+};
+
+// Obtener la configuración según la ubicación seleccionada
+const config = locationConfig[location] || locationConfig.pichilemu;
+---
+
 <section
   id="servicios"
   class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white"
 >
   <div class="max-w-7xl mx-auto text-center">
     <h1 class="text-4xl font-bold text-gray-900 mb-12">
-      <span class="border-b-4 border-red-500 pb-2">Nuestros Servicios</span>
+      <span class={`border-b-4 ${config.borderColor} pb-2`}
+        >Nuestros Servicios</span
+      >
     </h1>
 
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      <!-- Cabañas Pichilemu -->
+      <!-- Cabañas específicas de la ubicación -->
       <div
         class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
       >
         <div
-          class="bg-red-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-red-600"
+            class={`h-8 w-8 ${config.primaryText}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -30,133 +81,27 @@
             ></path>
           </svg>
         </div>
-        <h3 class="text-xl font-bold text-gray-800 mb-3">Cabañas Pichilemu</h3>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">{config.title}</h3>
         <ul class="text-gray-600 space-y-2">
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña para 2 personas
-          </li>
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña para 4 personas
-          </li>
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña para 5 personas
-          </li>
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña para 6 personas
-          </li>
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña para 8 personas
-          </li>
-        </ul>
-      </div>
-
-      <!-- Cabañas La Serena -->
-      <div
-        class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
-      >
-        <div
-          class="bg-blue-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-blue-600"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-            ></path>
-          </svg>
-        </div>
-        <h3 class="text-xl font-bold text-gray-800 mb-3">Cabañas La Serena</h3>
-        <ul class="text-gray-600 space-y-2">
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña El Faro (7-8 personas)
-          </li>
-          <li class="flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="h-5 w-5 text-green-500 mr-2"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-            >
-              <path
-                fill-rule="evenodd"
-                d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                clip-rule="evenodd"></path>
-            </svg>
-            Cabaña El Valle (4 personas)
-          </li>
+          {
+            config.cabanas.map((cabana) => (
+              <li class="flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-green-500 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                {cabana}
+              </li>
+            ))
+          }
         </ul>
       </div>
 
@@ -165,11 +110,11 @@
         class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
       >
         <div
-          class="bg-red-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-red-600"
+            class={`h-8 w-8 ${config.primaryText}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -194,11 +139,11 @@
         class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
       >
         <div
-          class="bg-red-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-red-600"
+            class={`h-8 w-8 ${config.primaryText}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -225,11 +170,11 @@
         class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
       >
         <div
-          class="bg-red-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-red-600"
+            class={`h-8 w-8 ${config.primaryText}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -253,11 +198,11 @@
         class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
       >
         <div
-          class="bg-red-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4"
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            class="h-8 w-8 text-red-600"
+            class={`h-8 w-8 ${config.primaryText}`}
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -276,6 +221,8 @@
           inolvidables en nuestras cabañas.
         </p>
       </div>
+
+      <!-- Servicios adicionales específicos según ubicación -->
     </div>
   </div>
 </section>

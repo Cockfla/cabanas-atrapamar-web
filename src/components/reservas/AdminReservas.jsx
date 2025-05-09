@@ -355,43 +355,6 @@ const AdminReservas = () => {
         </div>
       </div>
 
-      {/* Sección de sincronización de calendarios */}
-      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6 mb-6 sm:mb-8">
-        <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-3 sm:mb-4">
-          Sincronización con Airbnb
-        </h2>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Seleccionar Cabaña
-          </label>
-          <select
-            className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-md"
-            value={selectedCabañaForSync}
-            onChange={(e) => setSelectedCabañaForSync(e.target.value)}
-          >
-            <option value="">Selecciona una cabaña</option>
-            {cabañas.map((cabaña) => (
-              <option key={cabaña.id} value={cabaña.id}>
-                {cabaña.nombre} (
-                {cabaña.ubicacion === "Serena" ? "La Serena" : cabaña.ubicacion}
-                )
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {selectedCabañaForSync && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <ImportCalendar
-              cabañaId={selectedCabañaForSync}
-              onSuccess={() => fetchReservas()}
-            />
-            <ExportCalendar cabañaId={selectedCabañaForSync} />
-          </div>
-        )}
-      </div>
-
       {/* Botón para nueva reserva */}
       <div className="flex justify-end mb-4 sm:mb-6">
         <button
@@ -642,6 +605,42 @@ const AdminReservas = () => {
           {/* ... código existente del modal ... */}
         </div>
       )}
+      {/* Sección de sincronización de calendarios */}
+      <div className="bg-white rounded-lg shadow-md p-4 sm:p-6  my-4">
+        <h2 className="text-lg sm:text-xl font-semibold text-gray-700 mb-3 sm:mb-4">
+          Sincronización con Airbnb
+        </h2>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Seleccionar Cabaña
+          </label>
+          <select
+            className="w-full sm:w-1/2 p-2 border border-gray-300 rounded-md"
+            value={selectedCabañaForSync}
+            onChange={(e) => setSelectedCabañaForSync(e.target.value)}
+          >
+            <option value="">Selecciona una cabaña</option>
+            {cabañas.map((cabaña) => (
+              <option key={cabaña.id} value={cabaña.id}>
+                {cabaña.nombre} (
+                {cabaña.ubicacion === "Serena" ? "La Serena" : cabaña.ubicacion}
+                )
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedCabañaForSync && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <ImportCalendar
+              cabañaId={selectedCabañaForSync}
+              onSuccess={() => fetchReservas()}
+            />
+            <ExportCalendar cabañaId={selectedCabañaForSync} />
+          </div>
+        )}
+      </div>
     </div>
   );
 };

@@ -43,5 +43,5 @@
       "enabled": true
     }
   ],
-  "syncInterval": "6h"
+  "syncInterval": "1h"
 }

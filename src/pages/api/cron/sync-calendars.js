@@ -15,7 +15,15 @@ if (!process.env.CRON_SECRET_KEY) {
 export async function GET(request) {
   // Verificar si la solicitud proviene de un servicio de cron
   const authHeader = request.headers.get("Authorization");
-  if (!authHeader || authHeader !== `Bearer ${CRON_SECRET_KEY}`) {
+  const userAgent = request.headers.get("User-Agent");
+
+  // Verificar si es una solicitud de Vercel Cron Jobs o una solicitud autenticada con token
+  const isVercelCron = userAgent && userAgent.includes("vercel-cron/1.0");
+  const hasValidToken =
+    authHeader && authHeader === `Bearer ${CRON_SECRET_KEY}`;
+
+  // Permitir si es Vercel Cron O tiene token válido
+  if (!isVercelCron && !hasValidToken) {
     console.warn(
       "Intento de acceso no autorizado a la sincronización de calendarios"
     );

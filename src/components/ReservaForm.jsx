@@ -25,7 +25,7 @@ const ReservaForm = ({
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [cabañaSeleccionada, setCabañaSeleccionada] = useState(null);
   const [capacidadDisponible, setCapacidadDisponible] = useState({});
-
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const cabañaId = watch("cabaña_id");
 
   const changeMonth = (increment) => {
@@ -128,26 +128,52 @@ const ReservaForm = ({
         return `${year}-${month}-${day}`;
       };
 
-      const { error } = await supabase.from("reservas").insert([
-        {
+      // Obtener el precio de la cabaña seleccionada
+      const cabañaSeleccionada = cabañas.find(
+        (c) => c.id === parseInt(data.cabaña_id)
+      );
+      if (!cabañaSeleccionada) {
+        throw new Error("Cabaña no encontrada");
+      }
+
+      // Calcular número de noches
+      const fechaInicioObj = new Date(fechaInicio);
+      const fechaFinObj = new Date(fechaFin);
+      const diffTime = Math.abs(fechaFinObj - fechaInicioObj);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // Calcular monto total (precio por noche * número de noches)
+      const montoTotal = cabañaSeleccionada.precio * diffDays;
+
+      setIsProcessingPayment(true);
+
+      // Iniciar proceso de pago con Getnet
+      const paymentResponse = await fetch("/api/payment/create-transaction", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
           nombre: data.nombre,
           email: data.email,
           telefono: data.telefono,
           cabaña_id: data.cabaña_id,
           fecha_inicio: formatearFecha(fechaInicio),
           fecha_fin: formatearFecha(fechaFin),
-          created_at: new Date().toISOString(), // Agregar timestamp con zona horaria
-        },
-      ]);
+          monto: montoTotal,
+        }),
+      });
 
-      if (error) throw error;
+      const paymentData = await paymentResponse.json();
 
-      setSuccess(true);
-      reset();
-      setFechaInicio(null);
-      setFechaFin(null);
-      setTimeout(() => setSuccess(false), 5000);
+      if (paymentData.success && paymentData.redirect_url) {
+        // Redirigir al usuario a la pasarela de pago de Getnet
+        window.location.href = paymentData.redirect_url;
+      } else {
+        throw new Error(paymentData.message || "Error al procesar el pago");
+      }
     } catch (error) {
+      setIsProcessingPayment(false);
       alert("Error al reservar: " + error.message);
     } finally {
       setLoading(false);
@@ -320,14 +346,14 @@ const ReservaForm = ({
 
         <button
           type="submit"
-          disabled={loading || !fechaInicio || !fechaFin}
+          disabled={loading || isProcessingPayment || !fechaInicio || !fechaFin}
           className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ${
-            loading || !fechaInicio || !fechaFin
+            loading || isProcessingPayment || !fechaInicio || !fechaFin
               ? "opacity-70 cursor-not-allowed"
               : ""
           }`}
         >
-          {loading ? (
+          {loading || isProcessingPayment ? (
             <span className="flex items-center justify-center">
               <svg
                 className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -349,15 +375,18 @@ const ReservaForm = ({
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              Procesando reserva...
+              {isProcessingPayment
+                ? "Redirigiendo al pago..."
+                : "Procesando reserva..."}
             </span>
           ) : (
-            "Confirmar Reserva"
+            "Continuar al pago"
           )}
         </button>
 
         <p className="text-xs text-gray-500 text-center">
-          Al reservar, aceptas nuestros términos y condiciones.
+          Al reservar, aceptas nuestros términos y condiciones. Serás redirigido
+          a nuestra pasarela de pagos segura.
         </p>
       </form>
     </div>

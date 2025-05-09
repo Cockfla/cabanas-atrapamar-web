@@ -47,12 +47,22 @@ export const POST = async ({ request }) => {
     // Generar seed (fecha actual en formato ISO 8601)
     const seed = new Date().toISOString();
 
-    // Calcular tranKey (Base64(SHA-256(nonce + seed + secretKey)))
-    const tranKeyRaw = crypto
+    // Calcular tranKey correctamente según el manual
+    // Base64(SHA-256(nonce + seed + secretKey))
+    // Donde nonce es el valor binario original, no el codificado en base64
+    const tranKey = crypto
       .createHash("sha256")
-      .update(nonceBuffer + seed + secretKey)
-      .digest();
-    const tranKey = tranKeyRaw.toString("base64");
+      .update(
+        Buffer.concat([nonceBuffer, Buffer.from(seed), Buffer.from(secretKey)])
+      )
+      .digest("base64");
+
+    console.log({
+      login,
+      tranKey,
+      nonce,
+      seed,
+    });
 
     // 3. Crear estructura de datos para la solicitud según el manual
     const siteUrl = import.meta.env.PUBLIC_SITE_URL || "http://localhost:4321";
@@ -87,6 +97,7 @@ export const POST = async ({ request }) => {
         },
       },
       expiration: expirationDate.toISOString(),
+      // Incluir ambos parámetros en la URL de retorno
       returnUrl: `${siteUrl}/api/payment/response?id=${reservaId}`,
       ipAddress: "127.0.0.1", // Debe ser la IP real del cliente
       userAgent: "Mozilla/5.0", // Debe ser el User-Agent real del cliente
@@ -115,14 +126,18 @@ export const POST = async ({ request }) => {
       );
     }
 
-    // 5. Guardar requestId de la transacción
+    // 5. Guardar requestId de la transacción (asegurar que se guarde como string)
     await supabase
       .from("reservas")
       .update({
-        transaction_token: paymentResponse.requestId.toString(),
+        transaction_token: paymentResponse.requestId.toString(), // Garantizar que se guarde como string
         process_url: paymentResponse.processUrl,
       })
       .eq("id", reservaId);
+
+    console.log(
+      `RequestId ${paymentResponse.requestId} guardado para reserva ${reservaId}`
+    );
 
     // 6. Retornar URL de proceso de pago
     return new Response(

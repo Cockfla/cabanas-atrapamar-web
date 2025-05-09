@@ -1,8 +1,47 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import ReservaResultadoComponent from "../components/ReservaResultado.jsx";
+import Layout from "../layouts/Layout.astro"; // Ajusta esta ruta según donde esté realmente el Layout
+import ReservaResultadoContent from "../components/ReservaResultadoContent.jsx";
+import { supabase } from "../db/supabaseClient";
+
+// Obtener parámetros de la URL en Astro
+const id = Astro.url.searchParams.get("id");
+const status = Astro.url.searchParams.get("status");
+const errorParam = Astro.url.searchParams.get("error");
+
+// Si hay id, obtenemos la reserva desde el servidor
+let reserva = null;
+let error = null;
+
+if (id) {
+  try {
+    const { data, error: dbError } = await supabase
+      .from("reservas")
+      .select(
+        `
+        *,
+        cabaña:cabañas (nombre, precio, ubicacion)
+      `
+      )
+      .eq("id", id)
+      .single();
+
+    if (dbError) throw dbError;
+    if (!data) throw new Error("No se encontró la reserva");
+
+    reserva = data;
+  } catch (err: any) {
+    console.error("Error al cargar la reserva:", err);
+    error = err.message || "Error al cargar la información de la reserva";
+  }
+}
+
+// Si no hay id o hay un error explícito en la URL
+if (!id || errorParam === "true") {
+  error =
+    "No se proporcionó un ID de reserva válido o hubo un error en el proceso de pago";
+}
 ---
 
-<Layout>
-  <ReservaResultadoComponent client:load />
+<Layout title={reserva ? "Resumen de Reserva" : "Error en Reserva"}>
+  <ReservaResultadoContent reserva={reserva} error={error} client:load />
 </Layout>

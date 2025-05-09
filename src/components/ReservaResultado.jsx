@@ -1,37 +1,45 @@
-import React, { useEffect, useState } from "react";
-import Layout from "../layouts/Layout";
+import React, { useState, useEffect } from "react";
+import Layout from "../layouts/Layout.astro";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "../db/supabaseClient";
 
 export default function ReservaResultado() {
   const [reserva, setReserva] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [searchParams] = useSearchParams();
 
   useEffect(() => {
     const fetchReserva = async () => {
       try {
-        // Obtener ID y estado de la reserva de la URL
-        const params = new URLSearchParams(window.location.search);
-        const id = params.get("id");
-        const status = params.get("status");
+        setLoading(true);
 
-        if (!id) {
-          throw new Error("No se encontró el ID de la reserva");
+        // Verificar si hay error en la URL
+        if (searchParams.get("error") === "true") {
+          throw new Error(
+            "Ha ocurrido un error al procesar tu pago. Por favor, contacta a soporte."
+          );
         }
 
-        // Si tenemos el ID, obtener detalles de la reserva
-        const { data, error } = await supabase
+        // Obtener ID de la URL
+        const id = searchParams.get("id");
+        if (!id) {
+          throw new Error("No se proporcionó un ID de reserva válido");
+        }
+
+        // Consultar la reserva en la base de datos
+        const { data, error: dbError } = await supabase
           .from("reservas")
           .select(
             `
             *,
-            cabañas (nombre, precio, ubicacion)
+            cabaña:cabañas (nombre, precio, ubicacion)
           `
           )
           .eq("id", id)
           .single();
 
-        if (error) throw error;
+        if (dbError) throw dbError;
         if (!data) throw new Error("No se encontró la reserva");
 
         setReserva(data);
@@ -44,24 +52,32 @@ export default function ReservaResultado() {
     };
 
     fetchReserva();
-  }, []);
+  }, [searchParams]);
+
+  // Función para formatear fechas
+  const formatFecha = (fechaStr) => {
+    try {
+      return new Date(fechaStr).toLocaleDateString("es-ES", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      });
+    } catch (e) {
+      return "Fecha no disponible";
+    }
+  };
 
   if (loading) {
     return (
       <Layout>
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">
-              Cargando información de la reserva...
-            </p>
-          </div>
+        <div className="flex justify-center items-center min-h-[50vh]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       </Layout>
     );
   }
 
-  if (error || !reserva) {
+  if (error) {
     return (
       <Layout>
         <div className="container mx-auto px-4 py-12">
@@ -81,9 +97,7 @@ export default function ReservaResultado() {
               />
             </svg>
             <h2 className="text-xl font-bold text-red-700 mb-2">Error</h2>
-            <p className="text-red-600 mb-4">
-              {error || "No se pudo cargar la información de la reserva"}
-            </p>
+            <p className="text-red-600 mb-4">{error}</p>
             <a
               href="/"
               className="inline-block px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
@@ -185,13 +199,13 @@ export default function ReservaResultado() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Fecha de llegada:</span>
                 <span className="font-medium">
-                  {new Date(reserva.fecha_inicio).toLocaleDateString()}
+                  {formatFecha(reserva.fecha_inicio)}
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Fecha de salida:</span>
                 <span className="font-medium">
-                  {new Date(reserva.fecha_fin).toLocaleDateString()}
+                  {formatFecha(reserva.fecha_fin)}
                 </span>
               </div>
               <div className="flex justify-between">

@@ -1,138 +1,138 @@
-import React, { useState, useEffect } from "react";
-import { supabase } from "../db/supabaseClient";
-import { format, parseISO } from "date-fns";
-import { es } from "date-fns/locale";
+import React, { useState, useEffect } from 'react'
+import { supabase } from '../../db/supabaseClient'
+import { format, parseISO } from 'date-fns'
+import { es } from 'date-fns/locale'
 
 const AdminReservas = () => {
-  const [reservas, setReservas] = useState([]);
-  const [cabañas, setCabañas] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
-  const [currentReserva, setCurrentReserva] = useState(null);
+  const [reservas, setReservas] = useState([])
+  const [cabañas, setCabañas] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [editMode, setEditMode] = useState(false)
+  const [currentReserva, setCurrentReserva] = useState(null)
   const [filters, setFilters] = useState({
-    cabaña_id: "",
-    fecha_inicio: "",
-    fecha_fin: "",
-    ubicacion: "",
-  });
+    cabaña_id: '',
+    fecha_inicio: '',
+    fecha_fin: '',
+    ubicacion: '',
+  })
 
   // Form state
   const [formData, setFormData] = useState({
-    nombre: "",
-    email: "",
-    telefono: "",
-    cabaña_id: "",
-    fecha_inicio: "",
-    fecha_fin: "",
-  });
+    nombre: '',
+    email: '',
+    telefono: '',
+    cabaña_id: '',
+    fecha_inicio: '',
+    fecha_fin: '',
+  })
 
   // Fetch data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
+        setLoading(true)
 
         // Fetch cabañas
         const { data: cabañasData, error: cabañasError } = await supabase
-          .from("cabañas")
-          .select("*, ubicacion")
-          .order("nombre", { ascending: true });
+          .from('cabañas')
+          .select('*, ubicacion')
+          .order('nombre', { ascending: true })
 
-        if (cabañasError) throw cabañasError;
-        setCabañas(cabañasData || []);
+        if (cabañasError) throw cabañasError
+        setCabañas(cabañasData || [])
 
         // Fetch reservas
-        await fetchReservas();
+        await fetchReservas()
       } catch (err) {
-        setError(err.message);
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchData();
-  }, []);
+    fetchData()
+  }, [])
 
   const fetchReservas = async () => {
     try {
       let query = supabase
-        .from("reservas")
+        .from('reservas')
         .select(
           `
           *,
           cabañas: cabaña_id (nombre, precio, ubicacion)
         `
         )
-        .order("fecha_inicio", { ascending: false });
+        .order('fecha_inicio', { ascending: false })
 
       // Apply filters
       if (filters.cabaña_id) {
-        query = query.eq("cabaña_id", filters.cabaña_id);
+        query = query.eq('cabaña_id', filters.cabaña_id)
       }
       if (filters.fecha_inicio) {
-        query = query.gte("fecha_inicio", filters.fecha_inicio);
+        query = query.gte('fecha_inicio', filters.fecha_inicio)
       }
       if (filters.fecha_fin) {
-        query = query.lte("fecha_fin", filters.fecha_fin);
+        query = query.lte('fecha_fin', filters.fecha_fin)
       }
       // Si hay filtro de ubicación, lo aplicamos a través de la relación con cabañas
       if (filters.ubicacion) {
         // Primero obtenemos los IDs de cabañas que coinciden con la ubicación
         const { data: cabañasIds } = await supabase
-          .from("cabañas")
-          .select("id")
-          .eq("ubicacion", filters.ubicacion);
+          .from('cabañas')
+          .select('id')
+          .eq('ubicacion', filters.ubicacion)
 
         if (cabañasIds && cabañasIds.length > 0) {
-          const ids = cabañasIds.map((c) => c.id);
-          query = query.in("cabaña_id", ids);
+          const ids = cabañasIds.map((c) => c.id)
+          query = query.in('cabaña_id', ids)
         }
       }
 
-      const { data, error } = await query;
+      const { data, error } = await query
 
-      if (error) throw error;
-      setReservas(data || []);
+      if (error) throw error
+      setReservas(data || [])
     } catch (err) {
-      setError(err.message);
-      setReservas([]);
+      setError(err.message)
+      setReservas([])
     }
-  };
+  }
 
   // Handle form changes
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-    }));
-  };
+    }))
+  }
 
   const handleDateChange = (name, date) => {
     setFormData((prev) => ({
       ...prev,
-      [name]: date ? format(date, "yyyy-MM-dd") : "",
-    }));
-  };
+      [name]: date ? format(date, 'yyyy-MM-dd') : '',
+    }))
+  }
 
   // Form submission
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault()
     try {
-      setLoading(true);
+      setLoading(true)
 
       // Crear objeto con los datos del formulario
       const reservaData = {
         ...formData,
         created_at: new Date().toISOString(), // Agregar timestamp con zona horaria en formato ISO
-      };
+      }
 
       if (editMode) {
         // Update existing reserva (sin modificar created_at)
         const { nombre, email, telefono, cabaña_id, fecha_inicio, fecha_fin } =
-          formData;
+          formData
         const updateData = {
           nombre,
           email,
@@ -140,33 +140,33 @@ const AdminReservas = () => {
           cabaña_id,
           fecha_inicio,
           fecha_fin,
-        };
+        }
 
         const { error } = await supabase
-          .from("reservas")
+          .from('reservas')
           .update(updateData)
-          .eq("id", currentReserva.id);
+          .eq('id', currentReserva.id)
 
-        if (error) throw error;
+        if (error) throw error
       } else {
         // Create new reserva (con created_at)
-        const { error } = await supabase.from("reservas").insert([reservaData]);
+        const { error } = await supabase.from('reservas').insert([reservaData])
 
-        if (error) throw error;
+        if (error) throw error
       }
 
-      await fetchReservas();
-      closeModal();
+      await fetchReservas()
+      closeModal()
     } catch (err) {
-      setError(err.message);
+      setError(err.message)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   // Edit reserva
   const handleEdit = (reserva) => {
-    setCurrentReserva(reserva);
+    setCurrentReserva(reserva)
     setFormData({
       nombre: reserva.nombre,
       email: reserva.email,
@@ -174,76 +174,76 @@ const AdminReservas = () => {
       cabaña_id: reserva.cabaña_id,
       fecha_inicio: reserva.fecha_inicio,
       fecha_fin: reserva.fecha_fin,
-    });
-    setEditMode(true);
-    setModalOpen(true);
-  };
+    })
+    setEditMode(true)
+    setModalOpen(true)
+  }
 
   // Delete reserva
   const handleDelete = async (id) => {
-    if (window.confirm("¿Estás seguro de eliminar esta reserva?")) {
+    if (window.confirm('¿Estás seguro de eliminar esta reserva?')) {
       try {
-        setLoading(true);
-        const { error } = await supabase.from("reservas").delete().eq("id", id);
+        setLoading(true)
+        const { error } = await supabase.from('reservas').delete().eq('id', id)
 
-        if (error) throw error;
+        if (error) throw error
 
-        await fetchReservas();
+        await fetchReservas()
       } catch (err) {
-        setError(err.message);
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     }
-  };
+  }
 
   // Modal controls
   const openModal = () => {
     setFormData({
-      nombre: "",
-      email: "",
-      telefono: "",
-      cabaña_id: "",
-      fecha_inicio: "",
-      fecha_fin: "",
-    });
-    setEditMode(false);
-    setCurrentReserva(null);
-    setModalOpen(true);
-  };
+      nombre: '',
+      email: '',
+      telefono: '',
+      cabaña_id: '',
+      fecha_inicio: '',
+      fecha_fin: '',
+    })
+    setEditMode(false)
+    setCurrentReserva(null)
+    setModalOpen(true)
+  }
 
   const closeModal = () => {
-    setModalOpen(false);
-    setError(null);
-  };
+    setModalOpen(false)
+    setError(null)
+  }
 
   // Apply filters
   const applyFilters = () => {
-    fetchReservas();
-  };
+    fetchReservas()
+  }
 
   // Reset filters
   const resetFilters = () => {
     setFilters({
-      cabaña_id: "",
-      fecha_inicio: "",
-      fecha_fin: "",
-      ubicacion: "",
-    });
-    fetchReservas();
-  };
+      cabaña_id: '',
+      fecha_inicio: '',
+      fecha_fin: '',
+      ubicacion: '',
+    })
+    fetchReservas()
+  }
 
   // Obtener ubicaciones únicas para el filtro
   const ubicaciones = [
     ...new Set(cabañas.map((c) => c.ubicacion).filter(Boolean)),
-  ];
+  ]
 
   if (loading && reservas.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
-    );
+    )
   }
 
   if (error) {
@@ -251,7 +251,7 @@ const AdminReservas = () => {
       <div className="p-4 bg-red-100 text-red-700 rounded-lg max-w-4xl mx-auto mt-8">
         Error: {error}
       </div>
-    );
+    )
   }
 
   return (
@@ -280,7 +280,7 @@ const AdminReservas = () => {
               <option value="">Todas</option>
               {ubicaciones.map((ubicacion) => (
                 <option key={ubicacion} value={ubicacion}>
-                  {ubicacion === "Serena" ? "La Serena" : ubicacion}
+                  {ubicacion === 'Serena' ? 'La Serena' : ubicacion}
                 </option>
               ))}
             </select>
@@ -423,20 +423,20 @@ const AdminReservas = () => {
                     </td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="text-gray-900">
-                        {reserva.cabañas?.ubicacion === "Serena"
-                          ? "La Serena"
+                        {reserva.cabañas?.ubicacion === 'Serena'
+                          ? 'La Serena'
                           : reserva.cabañas?.ubicacion}
                       </div>
                     </td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
                       <div className="text-gray-900">
-                        {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
+                        {format(parseISO(reserva.fecha_inicio), 'dd/MM/yyyy', {
                           locale: es,
                         })}
                       </div>
                       <div className="text-gray-500">
-                        al{" "}
-                        {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
+                        al{' '}
+                        {format(parseISO(reserva.fecha_fin), 'dd/MM/yyyy', {
                           locale: es,
                         })}
                       </div>
@@ -450,12 +450,12 @@ const AdminReservas = () => {
                         {reserva.created_at
                           ? format(
                               parseISO(reserva.created_at),
-                              "dd/MM/yyyy HH:mm",
+                              'dd/MM/yyyy HH:mm',
                               {
                                 locale: es,
                               }
                             )
-                          : "N/A"}
+                          : 'N/A'}
                       </div>
                     </td>
                     <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
@@ -499,14 +499,14 @@ const AdminReservas = () => {
                       {reserva.nombre}
                     </h3>
                     <span className="text-sm bg-gray-100 text-gray-800 py-1 px-2 rounded-full">
-                      {reserva.cabañas?.ubicacion === "Serena"
-                        ? "La Serena"
+                      {reserva.cabañas?.ubicacion === 'Serena'
+                        ? 'La Serena'
                         : reserva.cabañas?.ubicacion}
                     </span>
                   </div>
 
                   <div className="mb-2">
-                    <span className="text-gray-600 font-medium">Cabaña:</span>{" "}
+                    <span className="text-gray-600 font-medium">Cabaña:</span>{' '}
                     <span className="text-gray-900">
                       {reserva.cabañas?.nombre}
                     </span>
@@ -516,23 +516,23 @@ const AdminReservas = () => {
                   </div>
 
                   <div className="mb-2">
-                    <span className="text-gray-600 font-medium">Fechas:</span>{" "}
+                    <span className="text-gray-600 font-medium">Fechas:</span>{' '}
                     <span className="text-gray-900">
-                      {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
+                      {format(parseISO(reserva.fecha_inicio), 'dd/MM/yyyy', {
                         locale: es,
                       })}
                     </span>
                     <span className="text-gray-500">
-                      {" "}
-                      al{" "}
-                      {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
+                      {' '}
+                      al{' '}
+                      {format(parseISO(reserva.fecha_fin), 'dd/MM/yyyy', {
                         locale: es,
                       })}
                     </span>
                   </div>
 
                   <div className="mb-2">
-                    <span className="text-gray-600 font-medium">Contacto:</span>{" "}
+                    <span className="text-gray-600 font-medium">Contacto:</span>{' '}
                     <div>
                       <span className="text-gray-900">{reserva.email}</span>
                       <span className="block text-gray-500">
@@ -544,17 +544,17 @@ const AdminReservas = () => {
                   <div className="mb-3">
                     <span className="text-gray-600 font-medium">
                       Reserva realizada:
-                    </span>{" "}
+                    </span>{' '}
                     <span className="text-gray-900">
                       {reserva.created_at
                         ? format(
                             parseISO(reserva.created_at),
-                            "dd/MM/yyyy HH:mm",
+                            'dd/MM/yyyy HH:mm',
                             {
                               locale: es,
                             }
                           )
-                        : "N/A"}
+                        : 'N/A'}
                     </span>
                   </div>
 
@@ -590,7 +590,7 @@ const AdminReservas = () => {
             <div className="p-4 sm:p-6">
               <div className="flex justify-between items-center mb-4 sticky top-0 bg-white pb-2">
                 <h2 className="text-lg sm:text-xl font-semibold text-gray-800">
-                  {editMode ? "Editar Reserva" : "Nueva Reserva"}
+                  {editMode ? 'Editar Reserva' : 'Nueva Reserva'}
                 </h2>
                 <button
                   onClick={closeModal}
@@ -674,7 +674,7 @@ const AdminReservas = () => {
                       <option value="">Seleccionar ubicación</option>
                       {ubicaciones.map((ubicacion) => (
                         <option key={ubicacion} value={ubicacion}>
-                          {ubicacion === "Serena" ? "La Serena" : ubicacion}
+                          {ubicacion === 'Serena' ? 'La Serena' : ubicacion}
                         </option>
                       ))}
                     </select>
@@ -700,8 +700,8 @@ const AdminReservas = () => {
                         .map((cabaña) => (
                           <option key={cabaña.id} value={cabaña.id}>
                             {cabaña.nombre} (
-                            {cabaña.ubicacion === "Serena"
-                              ? "La Serena"
+                            {cabaña.ubicacion === 'Serena'
+                              ? 'La Serena'
                               : cabaña.ubicacion}
                             )
                           </option>
@@ -781,9 +781,9 @@ const AdminReservas = () => {
                         Procesando...
                       </span>
                     ) : editMode ? (
-                      "Actualizar Reserva"
+                      'Actualizar Reserva'
                     ) : (
-                      "Crear Reserva"
+                      'Crear Reserva'
                     )}
                   </button>
                 </div>
@@ -793,7 +793,7 @@ const AdminReservas = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default AdminReservas;
+export default AdminReservas

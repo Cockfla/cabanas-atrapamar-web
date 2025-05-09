@@ -1,71 +1,71 @@
-import React, { useState, useEffect } from "react";
-import Layout from "../layouts/Layout.astro";
-import { useSearchParams } from "react-router-dom";
-import { supabase } from "../db/supabaseClient";
+import React, { useState, useEffect } from 'react'
+import Layout from '../layouts/Layout.astro'
+import { useSearchParams } from 'react-router-dom'
+import { supabase } from '../../db/supabaseClient'
 
 export default function ReservaResultado() {
-  const [reserva, setReserva] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [searchParams] = useSearchParams();
+  const [reserva, setReserva] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [searchParams] = useSearchParams()
 
   useEffect(() => {
     const fetchReserva = async () => {
       try {
-        setLoading(true);
+        setLoading(true)
 
         // Verificar si hay error en la URL
-        if (searchParams.get("error") === "true") {
+        if (searchParams.get('error') === 'true') {
           throw new Error(
-            "Ha ocurrido un error al procesar tu pago. Por favor, contacta a soporte."
-          );
+            'Ha ocurrido un error al procesar tu pago. Por favor, contacta a soporte.'
+          )
         }
 
         // Obtener ID de la URL
-        const id = searchParams.get("id");
+        const id = searchParams.get('id')
         if (!id) {
-          throw new Error("No se proporcionó un ID de reserva válido");
+          throw new Error('No se proporcionó un ID de reserva válido')
         }
 
         // Consultar la reserva en la base de datos
         const { data, error: dbError } = await supabase
-          .from("reservas")
+          .from('reservas')
           .select(
             `
             *,
             cabaña:cabañas (nombre, precio, ubicacion)
           `
           )
-          .eq("id", id)
-          .single();
+          .eq('id', id)
+          .single()
 
-        if (dbError) throw dbError;
-        if (!data) throw new Error("No se encontró la reserva");
+        if (dbError) throw dbError
+        if (!data) throw new Error('No se encontró la reserva')
 
-        setReserva(data);
+        setReserva(data)
       } catch (err) {
-        console.error("Error al cargar la reserva:", err);
-        setError(err.message);
+        console.error('Error al cargar la reserva:', err)
+        setError(err.message)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchReserva();
-  }, [searchParams]);
+    fetchReserva()
+  }, [searchParams])
 
   // Función para formatear fechas
   const formatFecha = (fechaStr) => {
     try {
-      return new Date(fechaStr).toLocaleDateString("es-ES", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      });
+      return new Date(fechaStr).toLocaleDateString('es-ES', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      })
     } catch (e) {
-      return "Fecha no disponible";
+      return 'Fecha no disponible'
     }
-  };
+  }
 
   if (loading) {
     return (
@@ -74,7 +74,7 @@ export default function ReservaResultado() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
         </div>
       </Layout>
-    );
+    )
   }
 
   if (error) {
@@ -107,10 +107,10 @@ export default function ReservaResultado() {
           </div>
         </div>
       </Layout>
-    );
+    )
   }
 
-  const esReservaExitosa = reserva.estado === "confirmada";
+  const esReservaExitosa = reserva.estado === 'confirmada'
 
   return (
     <Layout>
@@ -118,8 +118,8 @@ export default function ReservaResultado() {
         <div
           className={`border rounded-lg p-8 max-w-2xl mx-auto ${
             esReservaExitosa
-              ? "bg-green-50 border-green-200"
-              : "bg-yellow-50 border-yellow-200"
+              ? 'bg-green-50 border-green-200'
+              : 'bg-yellow-50 border-yellow-200'
           }`}
         >
           {esReservaExitosa ? (
@@ -191,9 +191,9 @@ export default function ReservaResultado() {
               <div className="flex justify-between">
                 <span className="text-gray-600">Ubicación:</span>
                 <span className="font-medium">
-                  {reserva.cabañas?.ubicacion === "pichilemu"
-                    ? "Pichilemu"
-                    : "La Serena"}
+                  {reserva.cabañas?.ubicacion === 'pichilemu'
+                    ? 'Pichilemu'
+                    : 'La Serena'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -212,10 +212,10 @@ export default function ReservaResultado() {
                 <span className="text-gray-600">Estado del pago:</span>
                 <span
                   className={`font-medium ${
-                    esReservaExitosa ? "text-green-600" : "text-yellow-600"
+                    esReservaExitosa ? 'text-green-600' : 'text-yellow-600'
                   }`}
                 >
-                  {esReservaExitosa ? "Completado" : "Pendiente"}
+                  {esReservaExitosa ? 'Completado' : 'Pendiente'}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -228,8 +228,8 @@ export default function ReservaResultado() {
           <div className="mt-6 text-center">
             <p className="text-gray-600 mb-4">
               {esReservaExitosa
-                ? "Hemos enviado los detalles de tu reserva a tu correo electrónico."
-                : "Si el pago fue rechazado, puedes intentar nuevamente o contactarnos para asistencia."}
+                ? 'Hemos enviado los detalles de tu reserva a tu correo electrónico.'
+                : 'Si el pago fue rechazado, puedes intentar nuevamente o contactarnos para asistencia.'}
             </p>
             <a
               href="/"
@@ -241,5 +241,5 @@ export default function ReservaResultado() {
         </div>
       </div>
     </Layout>
-  );
+  )
 }

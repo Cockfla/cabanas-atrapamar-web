@@ -1,6 +1,6 @@
 ---
 import Image from "astro/components/Image.astro";
-import { supabase } from "../db/supabaseClient";
+import { supabase } from "../../db/supabaseClient";
 
 // Obtener props con valores predeterminados seguros
 const { location = "pichilemu" } = Astro.props;
@@ -83,7 +83,7 @@ if (cookies) {
             Cerrar Sesión
           </a>
         </div>
-        
+
         <!-- Botón menú móvil para admin -->
         <div class="sm:hidden">
           <button
@@ -106,7 +106,7 @@ if (cookies) {
           </button>
         </div>
       </div>
-      
+
       <!-- Menú móvil para admin -->
       <div class="sm:hidden hidden bg-white border-t" id="admin-mobile-menu">
         <div class="px-4 py-2 space-y-3">
@@ -308,32 +308,32 @@ if (cookies) {
     // Menú móvil para clientes
     const mobileMenuButton = document.getElementById("mobile-menu-button");
     const mobileMenu = document.getElementById("mobile-menu");
-    
+
     if (mobileMenuButton && mobileMenu) {
       mobileMenuButton.addEventListener("click", () => {
         mobileMenu.classList.toggle("hidden");
       });
     }
-    
+
     // Menú móvil para admin
     const adminMenuButton = document.getElementById("admin-menu-button");
     const adminMobileMenu = document.getElementById("admin-mobile-menu");
-    
+
     if (adminMenuButton && adminMobileMenu) {
       adminMenuButton.addEventListener("click", () => {
         adminMobileMenu.classList.toggle("hidden");
       });
     }
-    
+
     // Manejo seguro de elementos admin/user
     const adminElements = document.querySelectorAll("[data-admin-only]");
     const userElements = document.querySelectorAll("[data-user-only]");
     const isAdmin = localStorage.getItem("isAdmin") === "true";
-    
+
     adminElements.forEach((el) => {
       (el as HTMLElement).style.display = isAdmin ? "" : "none";
     });
-    
+
     userElements.forEach((el) => {
       (el as HTMLElement).style.display = isAdmin ? "none" : "";
     });

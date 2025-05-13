@@ -1,4 +1,5 @@
 ---
+import Image from "astro/components/Image.astro";
 import Map from "../map/Map";
 
 // Recibe la ubicación como prop
@@ -62,10 +63,11 @@ const currentLocation = ubicaciones[location ?? "pichilemu"];
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-0">
         <!-- Carrusel de fotos -->
         <div
-          class="relative w-full aspect-video lg:aspect-auto lg:h-full overflow-hidden"
+          class="relative w-full aspect-video lg:aspect-auto lg:h-full overflow-hidden carousel-container"
+          id="location-carousel-container"
         >
           <div
-            class="flex transition-transform duration-500 location-carousel h-full"
+            class="flex transition-transform duration-500 ease-in-out location-carousel h-full"
             style={`width: ${currentLocation.fotos.length * 100}%;`}
           >
             {
@@ -74,10 +76,13 @@ const currentLocation = ubicaciones[location ?? "pichilemu"];
                   class="flex-shrink-0 h-full"
                   style={`width: ${100 / currentLocation.fotos.length}%;`}
                 >
-                  <img
+                  <Image
+                    width={800}
+                    height={600}
                     src={foto.src}
                     alt={foto.alt}
                     class="w-full h-full object-cover"
+                    loading="lazy"
                   />
                 </div>
               ))
@@ -163,29 +168,95 @@ const currentLocation = ubicaciones[location ?? "pichilemu"];
 </section>
 
 <script is:inline>
-  document.addEventListener("DOMContentLoaded", () => {
-    // Script simplificado para carrusel
-    const carousel = document.querySelector(".location-carousel");
-    const prev = document.querySelector(".prev-button");
-    const next = document.querySelector(".next-button");
+  // Ejecutar inmediatamente sin esperar DOMContentLoaded
+  (function () {
+    function initializeCarousel() {
+      console.log("Inicializando carrusel...");
+      const carousel = document.querySelector(".location-carousel");
+      const prev = document.querySelector(".prev-button");
+      const next = document.querySelector(".next-button");
 
-    if (carousel) {
-      const slides = carousel.querySelectorAll("div");
-      let currentIndex = 0;
-
-      function updateCarousel() {
-        carousel.style.transform = `translateX(-${currentIndex * (100 / slides.length)}%)`;
+      if (!carousel) {
+        console.error("No se encontró el elemento carrusel");
+        return;
       }
 
-      next?.addEventListener("click", () => {
-        currentIndex = (currentIndex + 1) % slides.length;
-        updateCarousel();
-      });
+      console.log("Carrusel encontrado:", carousel);
 
-      prev?.addEventListener("click", () => {
-        currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-        updateCarousel();
-      });
+      // Obtener los elementos directos que contienen las imágenes
+      const slides = Array.from(carousel.querySelectorAll(".flex-shrink-0"));
+      console.log("Slides encontrados:", slides.length);
+
+      if (slides.length === 0) {
+        console.error("No se encontraron slides en el carrusel");
+        return;
+      }
+
+      let currentIndex = 0;
+
+      // Función para actualizar la posición del carrusel
+      function goToSlide(index) {
+        currentIndex = index;
+        const slideWidth = 100 / slides.length;
+        carousel.style.transform = `translateX(-${currentIndex * slideWidth}%)`;
+        console.log(`Mostrando slide ${currentIndex + 1}/${slides.length}`);
+      }
+
+      // Configurar botones de navegación
+      if (next) {
+        next.addEventListener("click", (e) => {
+          e.preventDefault();
+          currentIndex = (currentIndex + 1) % slides.length;
+          goToSlide(currentIndex);
+        });
+        console.log("Botón 'siguiente' configurado");
+      }
+
+      if (prev) {
+        prev.addEventListener("click", (e) => {
+          e.preventDefault();
+          currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+          goToSlide(currentIndex);
+        });
+        console.log("Botón 'anterior' configurado");
+      }
+
+      // Iniciar carrusel automático
+      let autoplayInterval = setInterval(() => {
+        currentIndex = (currentIndex + 1) % slides.length;
+        goToSlide(currentIndex);
+      }, 5000);
+
+      // Pausar al hacer hover
+      const carouselContainer = carousel.parentElement;
+      if (carouselContainer) {
+        carouselContainer.addEventListener("mouseenter", () => {
+          clearInterval(autoplayInterval);
+          console.log("Autoplay pausado");
+        });
+
+        carouselContainer.addEventListener("mouseleave", () => {
+          clearInterval(autoplayInterval);
+          autoplayInterval = setInterval(() => {
+            currentIndex = (currentIndex + 1) % slides.length;
+            goToSlide(currentIndex);
+          }, 5000);
+          console.log("Autoplay reanudado");
+        });
+      }
+
+      // Iniciar en el primer slide
+      goToSlide(0);
     }
-  });
+
+    // Intentar inicializar inmediatamente
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initializeCarousel);
+    } else {
+      initializeCarousel();
+    }
+
+    // Intentar de nuevo después de un breve retraso (por si Astro o hydration causa problemas)
+    setTimeout(initializeCarousel, 500);
+  })();
 </script>

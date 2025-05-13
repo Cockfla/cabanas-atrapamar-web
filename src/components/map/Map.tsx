@@ -1,11 +1,12 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
-import 'leaflet/dist/leaflet.css'
-import { customIcon } from './MarkerIcon' // Importar el icono personalizado
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { customIcon } from "./MarkerIcon"; // Importar el icono personalizado
+import Image from "astro/components/Image.astro";
 
 interface Props {
-  lat: number
-  lng: number
-  titulo: string
+  lat: number;
+  lng: number;
+  titulo: string;
 }
 
 export default function Map({ lat, lng, titulo }: Props) {
@@ -14,7 +15,7 @@ export default function Map({ lat, lng, titulo }: Props) {
       center={[lat, lng]}
       zoom={16}
       scrollWheelZoom={false}
-      style={{ height: '400px', width: '100%' }}
+      style={{ height: "400px", width: "100%" }}
       className="z-0"
     >
       <TileLayer
@@ -22,13 +23,15 @@ export default function Map({ lat, lng, titulo }: Props) {
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
       />
       <Marker position={[lat, lng]} icon={customIcon}>
-        {' '}
+        {" "}
         {/* Usa el icono personalizado */}
         <Popup>
           <div className="flex flex-col items-center justify-center">
-            <img
-              src="/cabanas-atrapamar-log.png"
+            <Image
               width={50}
+              height={50}
+              loading="lazy"
+              src="/cabanas-atrapamar-log.png"
               alt="Logo Cabañas Atrapa Mar"
             />
             <b>{titulo}</b>
@@ -36,5 +39,5 @@ export default function Map({ lat, lng, titulo }: Props) {
         </Popup>
       </Marker>
     </MapContainer>
-  )
+  );
 }

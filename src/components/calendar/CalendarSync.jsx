@@ -44,18 +44,39 @@ export const ImportCalendar = ({ cabañaId, onSuccess }) => {
     setSuccess(false);
 
     try {
-      // 1. Guardar o actualizar la URL en la tabla ical_sources
-      const { error: saveError } = await supabase.from("ical_sources").upsert(
-        {
+      // 1. Verificar si ya existe una configuración para esta cabaña
+      const { data: existing } = await supabase
+        .from("ical_sources")
+        .select("id")
+        .eq("cabaña_id", cabañaId)
+        .maybeSingle();
+
+      let saveError;
+
+      if (existing) {
+        // Actualizar entrada existente
+        const { error } = await supabase
+          .from("ical_sources")
+          .update({
+            url: icalUrl,
+            enabled: true,
+            last_synced: new Date().toISOString(),
+            created_at: new Date().toISOString(),
+          })
+          .eq("id", existing.id);
+
+        saveError = error;
+      } else {
+        // Crear nueva entrada
+        const { error } = await supabase.from("ical_sources").insert({
           cabaña_id: cabañaId,
           url: icalUrl,
           enabled: true,
           last_synced: new Date().toISOString(),
-        },
-        {
-          onConflict: "cabaña_id",
-        }
-      );
+        });
+
+        saveError = error;
+      }
 
       if (saveError)
         throw new Error(`Error al guardar URL: ${saveError.message}`);
@@ -271,7 +292,6 @@ export const ExportCalendar = ({ cabañaId }) => {
 
     fetchExistingLink();
   }, [cabañaId]);
-
   const generateExportLink = async () => {
     setLoading(true);
     setError(null);
@@ -283,19 +303,36 @@ export const ExportCalendar = ({ cabañaId }) => {
         Math.random().toString(36).substring(2, 15) +
         Math.random().toString(36).substring(2, 15);
 
-      // Guardar relación entre token y cabaña en la base de datos
-      const { data, error: saveError } = await supabase
+      // Verificar si ya existe un enlace para esta cabaña
+      const { data: existingEntry } = await supabase
         .from("ical_links")
-        .upsert(
-          {
-            cabaña_id: cabañaId,
+        .select("id")
+        .eq("cabaña_id", cabañaId)
+        .maybeSingle();
+
+      let saveError;
+
+      if (existingEntry) {
+        // Actualizar entrada existente
+        const { error } = await supabase
+          .from("ical_links")
+          .update({
             link_token: token,
             created_at: new Date().toISOString(),
-          },
-          {
-            onConflict: "cabaña_id",
-          }
-        );
+          })
+          .eq("id", existingEntry.id);
+
+        saveError = error;
+      } else {
+        // Crear nueva entrada
+        const { error } = await supabase.from("ical_links").insert({
+          cabaña_id: cabañaId,
+          link_token: token,
+          created_at: new Date().toISOString(),
+        });
+
+        saveError = error;
+      }
 
       if (saveError) throw saveError;
 

@@ -30,26 +30,42 @@ async function setupCalendarSync() {
         continue;
       }
 
-      console.log(`Configurando sincronización para: ${cabanaData.nombre}`);
+      console.log(`Configurando sincronización para: ${cabanaData.nombre}`); // Guardar o actualizar la configuración en la base de datos
+      // Verificar si ya existe una configuración para esta cabaña
+      const { data: existing } = await supabase
+        .from("ical_sources")
+        .select("id")
+        .eq("cabaña_id", cabana.id)
+        .maybeSingle();
 
-      // Guardar o actualizar la configuración en la base de datos
-      const { error: upsertError } = await supabase.from("ical_sources").upsert(
-        {
+      let saveError;
+
+      if (existing) {
+        // Actualizar entrada existente
+        const { error } = await supabase
+          .from("ical_sources")
+          .update({
+            url: cabana.icalUrl,
+            last_synced: null, // Se actualizará en la primera sincronización
+            enabled: true,
+          })
+          .eq("id", existing.id);
+
+        saveError = error;
+      } else {
+        // Crear nueva entrada
+        const { error } = await supabase.from("ical_sources").insert({
           cabaña_id: cabana.id,
           url: cabana.icalUrl,
           last_synced: null, // Se actualizará en la primera sincronización
           enabled: true,
-        },
-        {
-          onConflict: "cabaña_id",
-        }
-      );
+        });
 
-      if (upsertError) {
-        console.error(
-          `Error configurando cabaña ID: ${cabana.id}:`,
-          upsertError
-        );
+        saveError = error;
+      }
+
+      if (saveError) {
+        console.error(`Error configurando cabaña ID: ${cabana.id}:`, saveError);
       } else {
         console.log(`✓ Configuración actualizada para cabaña ID: ${cabana.id}`);
       }

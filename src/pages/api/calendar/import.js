@@ -14,19 +14,38 @@ export async function POST({ request }) {
         }),
         { status: 400, headers: { "Content-Type": "application/json" } }
       );
-    }
+    } // Guardar la URL en la base de datos para futuras sincronizaciones
+    // Verificar si ya existe una configuración para esta cabaña
+    const { data: existing } = await supabase
+      .from("ical_sources")
+      .select("id")
+      .eq("cabaña_id", cabañaId)
+      .maybeSingle();
 
-    // Guardar la URL en la base de datos para futuras sincronizaciones
-    const { error: saveError } = await supabase.from("ical_sources").upsert(
-      {
+    let saveError;
+
+    if (existing) {
+      // Actualizar entrada existente
+      const { error } = await supabase
+        .from("ical_sources")
+        .update({
+          url: icalUrl,
+          last_synced: new Date().toISOString(),
+        })
+        .eq("id", existing.id);
+
+      saveError = error;
+    } else {
+      // Crear nueva entrada
+      const { error } = await supabase.from("ical_sources").insert({
         cabaña_id: cabañaId,
         url: icalUrl,
         last_synced: new Date().toISOString(),
-      },
-      {
-        onConflict: "cabaña_id",
-      }
-    );
+        enabled: true,
+      });
+
+      saveError = error;
+    }
 
     if (saveError) {
       throw new Error(`Error guardando URL: ${saveError.message}`);

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { supabase } from '../../db/supabaseClient'
+import React, { useState, useEffect } from "react";
+import { supabase } from "../../db/supabaseClient";
 
 const DisponibilidadCabanas = ({ location }) => {
-  const [cabañas, setCabañas] = useState([])
-  const [selectedCabaña, setSelectedCabaña] = useState(null)
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [reservedDates, setReservedDates] = useState({})
-  const [loading, setLoading] = useState(true)
-  const [capacidadTotal, setCapacidadTotal] = useState(1)
+  const [cabañas, setCabañas] = useState([]);
+  const [selectedCabaña, setSelectedCabaña] = useState(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [reservedDates, setReservedDates] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [capacidadTotal, setCapacidadTotal] = useState(1);
 
   // Obtener todas las cabañas según la ubicación
   useEffect(() => {
@@ -15,206 +15,215 @@ const DisponibilidadCabanas = ({ location }) => {
       try {
         // Convertir location a formato adecuado para la base de datos
         const ubicacionParam =
-          location === 'laserena' ? 'laserena' : 'pichilemu'
+          location === "laserena" ? "laserena" : "pichilemu";
 
         const { data, error } = await supabase
-          .from('cabañas')
-          .select('*')
-          .eq('ubicacion', ubicacionParam)
-          .order('precio', { ascending: true })
+          .from("cabañas")
+          .select("*")
+          .eq("ubicacion", ubicacionParam)
+          .order("precio", { ascending: true });
 
-        if (error) throw error
+        if (error) throw error;
 
-        setCabañas(data)
+        setCabañas(data);
         if (data.length > 0) {
-          setSelectedCabaña(data[0].id)
+          setSelectedCabaña(data[0].id);
         }
       } catch (err) {
-        console.error('Error fetching cabañas:', err)
+        console.error("Error fetching cabañas:", err);
       }
-    }
+    };
 
-    fetchCabañas()
-  }, [location])
+    fetchCabañas();
+  }, [location]);
 
   // Obtener fechas reservadas
   useEffect(() => {
-    if (!selectedCabaña) return
+    if (!selectedCabaña) return;
 
     const fetchReservedDates = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
 
         // Primero, obtener capacidad de la cabaña seleccionada
         const { data: cabañaData } = await supabase
-          .from('cabañas')
-          .select('capacidad')
-          .eq('id', selectedCabaña)
-          .single()
+          .from("cabañas")
+          .select("capacidad")
+          .eq("id", selectedCabaña)
+          .single();
 
-        const capacidadTotal = cabañaData?.capacidad || 1
+        const capacidadTotal = cabañaData?.capacidad || 1;
 
         // Luego, obtener las reservas
         const { data, error } = await supabase
-          .from('reservas')
-          .select('fecha_inicio, fecha_fin')
-          .eq('cabaña_id', selectedCabaña)
+          .from("reservas")
+          .select("fecha_inicio, fecha_fin")
+          .eq("cabaña_id", selectedCabaña);
 
-        if (error) throw error
+        if (error) throw error;
 
         // Crear un mapa de fechas con contador de reservas
-        const reservasPorFecha = {}
+        const reservasPorFecha = {};
 
         data.forEach((reserva) => {
-          const start = new Date(reserva.fecha_inicio)
-          const end = new Date(reserva.fecha_fin)
+          const start = new Date(reserva.fecha_inicio);
+          const end = new Date(reserva.fecha_fin);
 
           for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const dateString = d.toISOString().split('T')[0]
+            const dateString = d.toISOString().split("T")[0];
             reservasPorFecha[dateString] =
-              (reservasPorFecha[dateString] || 0) + 1
+              (reservasPorFecha[dateString] || 0) + 1;
           }
-        })
+        });
 
-        setReservedDates(reservasPorFecha)
-        setCapacidadTotal(capacidadTotal)
+        setReservedDates(reservasPorFecha);
+        setCapacidadTotal(capacidadTotal);
       } catch (err) {
-        console.error('Error fetching reserved dates:', err)
+        console.error("Error fetching reserved dates:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchReservedDates()
-  }, [selectedCabaña])
-
+    fetchReservedDates();
+  }, [selectedCabaña]);
   const getDayStatus = (date) => {
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
     if (date < today) {
-      return 'past'
+      return "past";
     }
 
-    const dateString = date.toISOString().split('T')[0]
-    const reservasEnFecha = reservedDates[dateString] || 0
+    const dateString = date.toISOString().split("T")[0];
+    const reservasEnFecha = reservedDates[dateString] || 0;
 
     if (reservasEnFecha >= capacidadTotal) {
-      return 'full' // Completamente reservada
+      return "full"; // Completamente reservada
     }
     if (reservasEnFecha > 0) {
-      return 'partial' // Parcialmente reservada
+      // Para cabañas con capacidad > 1, usamos partial solo cuando hay al menos una reserva
+      // pero todavía quedan cabañas disponibles
+      return "partial"; // Parcialmente reservada
     }
-    return 'available' // Completamente disponible
-  }
+    return "available"; // Completamente disponible
+  };
 
   // Cambiar mes
   const changeMonth = (increment) => {
-    const newMonth = new Date(currentMonth)
-    newMonth.setMonth(newMonth.getMonth() + increment)
-    setCurrentMonth(newMonth)
-  }
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + increment);
+    setCurrentMonth(newMonth);
+  };
 
   // Renderizar celdas del calendario con información de disponibilidad
   const renderCalendarDays = () => {
-    const year = currentMonth.getFullYear()
-    const month = currentMonth.getMonth()
-    const firstDay = new Date(year, month, 1)
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
 
     // Ajuste para empezar en Lunes
-    const startingDay = (firstDay.getDay() + 6) % 7
-    const days = []
-    const totalDays = 42 // 6 semanas
+    const startingDay = (firstDay.getDay() + 6) % 7;
+    const days = [];
+    const totalDays = 42; // 6 semanas
 
     for (let i = 0; i < totalDays; i++) {
-      const day = new Date(year, month, 1 + (i - startingDay))
-      const isCurrentMonth = day.getMonth() === month
-      const dayStatus = getDayStatus(day)
-      const isToday = day.toDateString() === new Date().toDateString()
-      const dateString = day.toISOString().split('T')[0]
-      const reservasEnFecha = reservedDates[dateString] || 0
-      const disponibles = capacidadTotal - reservasEnFecha
+      const day = new Date(year, month, 1 + (i - startingDay));
+      const isCurrentMonth = day.getMonth() === month;
+      const dayStatus = getDayStatus(day);
+      const isToday = day.toDateString() === new Date().toDateString();
+      const dateString = day.toISOString().split("T")[0];
+      const reservasEnFecha = reservedDates[dateString] || 0;
+      const disponibles = capacidadTotal - reservasEnFecha;
 
-      let dayClass = 'p-2 border rounded text-center relative '
+      let dayClass = "p-2 border rounded text-center relative ";
 
       if (!isCurrentMonth) {
-        dayClass += 'text-gray-400 bg-gray-50'
+        dayClass += "text-gray-400 bg-gray-50";
       } else {
         switch (dayStatus) {
-          case 'past':
-            dayClass += 'bg-gray-200 text-gray-500'
-            break
-          case 'full':
-            dayClass += 'bg-red-100 text-red-500'
-            break
-          case 'partial':
-            dayClass += 'bg-orange-100 text-orange-500'
-            break
-          case 'available':
-            dayClass += 'bg-green-100 text-green-700'
-            break
+          case "past":
+            dayClass += "bg-gray-200 text-gray-500";
+            break;
+          case "full":
+            dayClass += "bg-red-100 text-red-500";
+            break;
+          case "partial":
+            // Si hay múltiples unidades, hacemos el parcial más visible
+            dayClass +=
+              capacidadTotal > 1
+                ? "bg-orange-100 text-orange-600 font-medium"
+                : "bg-orange-100 text-orange-500";
+            break;
+          case "available":
+            dayClass += "bg-green-100 text-green-700";
+            break;
         }
       }
 
       if (isToday) {
-        dayClass += ' border-2 border-blue-500 font-bold'
-      }
-
-      // Agregar contenido de la celda
+        dayClass += " border-2 border-blue-500 font-bold";
+      } // Agregar contenido de la celda, mostrando siempre disponibles/total cuando capacidad > 1
       const content = (
         <div className="h-full flex flex-col justify-between">
           <span>{day.getDate()}</span>
-          {isCurrentMonth && dayStatus !== 'past' && (
+          {isCurrentMonth && dayStatus !== "past" && (
             <span className="text-xs mt-1">
-              {dayStatus === 'full'
-                ? 'Completo'
+              {capacidadTotal > 1
+                ? `${disponibles}/${capacidadTotal}`
+                : dayStatus === "full"
+                ? "Completo"
                 : `${disponibles}/${capacidadTotal}`}
             </span>
           )}
         </div>
-      )
+      );
 
       days.push(
         <div key={i} className={dayClass}>
           {content}
         </div>
-      )
+      );
     }
 
-    return days
-  }
+    return days;
+  };
 
-  const ubicacionTitle = location === 'laserena' ? 'La Serena' : 'Pichilemu'
+  const ubicacionTitle = location === "laserena" ? "La Serena" : "Pichilemu";
 
   return (
     <div className="max-w-4xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 my-8">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
         Disponibilidad de Cabañas en {ubicacionTitle}
       </h2>
-
       <div className="mb-6">
         <label className="block text-gray-700 text-sm font-medium mb-2">
           Selecciona una cabaña:
         </label>
         <select
-          value={selectedCabaña || ''}
+          value={selectedCabaña || ""}
           onChange={(e) => setSelectedCabaña(e.target.value)}
           className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         >
           {cabañas.map((cabaña) => (
             <option key={cabaña.id} value={cabaña.id}>
               {cabaña.nombre} - ${cabaña.precio}/noche
+              {cabaña.capacidad > 1 ? ` (${cabaña.capacidad} disponibles)` : ""}
             </option>
           ))}
         </select>
-      </div>
-
+      </div>{" "}
       <div className="bg-gray-50 p-4 rounded-lg">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
           <h3 className="font-medium text-lg">
-            {currentMonth.toLocaleDateString('es-ES', {
-              month: 'long',
-              year: 'numeric',
+            {currentMonth.toLocaleDateString("es-ES", {
+              month: "long",
+              year: "numeric",
             })}
+            {capacidadTotal > 1 && (
+              <span className="text-sm ml-2 text-gray-600 font-normal">
+                (Tenemos {capacidadTotal} cabañas de este tipo)
+              </span>
+            )}
           </h3>
           <div className="flex space-x-2">
             <button
@@ -272,27 +281,34 @@ const DisponibilidadCabanas = ({ location }) => {
               <div className="p-2 font-medium text-center">Dom</div>
 
               {renderCalendarDays()}
-            </div>
-
-            <div className="flex justify-center mt-6 space-x-4">
-              <div className="flex items-center">
+            </div>{" "}
+            <div className="flex flex-wrap justify-center mt-6 space-x-4 text-xs sm:text-sm">
+              <div className="flex items-center mb-2">
                 <div className="w-4 h-4 bg-green-100 border border-green-300 mr-2"></div>
-                <span className="text-sm">Disponible</span>
+                <span>Disponible</span>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center mb-2">
                 <div className="w-4 h-4 bg-orange-100 border border-orange-300 mr-2"></div>
-                <span className="text-sm">Parcialmente reservado</span>
+                <span>Parcialmente reservado</span>
               </div>
-              <div className="flex items-center">
+              <div className="flex items-center mb-2">
                 <div className="w-4 h-4 bg-red-100 border border-red-300 mr-2"></div>
-                <span className="text-sm">Completo</span>
+                <span>Completo</span>
               </div>
+              {capacidadTotal > 1 && (
+                <div className="flex items-center mb-2 ml-2 sm:ml-0">
+                  <div className="w-4 h-4 flex items-center justify-center text-xs font-bold bg-white border border-gray-300 mr-2">
+                    #
+                  </div>
+                  <span>Disponibles/Total</span>
+                </div>
+              )}
             </div>
           </>
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DisponibilidadCabanas
+export default DisponibilidadCabanas;

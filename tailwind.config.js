@@ -21,7 +21,8 @@ export default {
           background: '#ECF6FB',
           text: '#1C2833',
         },
+      },
     },
+    plugins: [],
   },
-  plugins: [],
 }

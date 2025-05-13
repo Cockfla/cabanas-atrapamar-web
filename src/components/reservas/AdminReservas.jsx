@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../db/supabaseClient";
-import { format, parseISO } from "date-fns";
+import {
+  format,
+  parseISO,
+  isBefore,
+  isAfter,
+  isWithinInterval,
+} from "date-fns";
 import { es } from "date-fns/locale";
 import { ImportCalendar, ExportCalendar } from "../calendar/CalendarSync";
 
@@ -240,6 +246,21 @@ const AdminReservas = () => {
     ...new Set(cabañas.map((c) => c.ubicacion).filter(Boolean)),
   ];
 
+  // Determina el estado temporal de una reserva: pasada, activa o futura
+  const getReservaStatus = (fechaInicio, fechaFin) => {
+    const now = new Date();
+    const startDate = parseISO(fechaInicio);
+    const endDate = parseISO(fechaFin);
+
+    if (isAfter(startDate, now)) {
+      return "future"; // Reserva futura
+    } else if (isBefore(endDate, now)) {
+      return "past"; // Reserva pasada
+    } else {
+      return "active"; // Reserva activa (en curso)
+    }
+  };
+
   if (loading && reservas.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen">
@@ -408,81 +429,135 @@ const AdminReservas = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
+              {" "}
               {reservas.length > 0 ? (
-                reservas.map((reserva) => (
-                  <tr key={reserva.id} className="hover:bg-gray-50">
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <div className="font-medium text-gray-900">
-                        {reserva.nombre}
-                        {reserva.source === "airbnb" && (
-                          <span className="ml-2 bg-blue-100 text-blue-700 text-xs px-1 py-0.5 rounded">
-                            Airbnb
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <div className="text-gray-900">
-                        {reserva.cabañas?.nombre}
-                      </div>
-                      <div className="text-gray-500">
-                        ${reserva.cabañas?.precio}/noche
-                      </div>
-                    </td>
-                    {/* Resto de celdas de la tabla... */}
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <div className="text-gray-900">
-                        {reserva.cabañas?.ubicacion === "Serena"
-                          ? "La Serena"
-                          : reserva.cabañas?.ubicacion}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <div className="text-gray-900">
-                        {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
-                          locale: es,
-                        })}
-                      </div>
-                      <div className="text-gray-500">
-                        al{" "}
-                        {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
-                          locale: es,
-                        })}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <div className="text-gray-900">{reserva.email}</div>
-                      <div className="text-gray-500">{reserva.telefono}</div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
-                      <div className="text-gray-900">
-                        {reserva.created_at
-                          ? format(
-                              parseISO(reserva.created_at),
-                              "dd/MM/yyyy HH:mm",
-                              {
-                                locale: es,
-                              }
-                            )
-                          : "N/A"}
-                      </div>
-                    </td>
-                    <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => handleEdit(reserva)}
-                        className="text-blue-600 hover:text-blue-900 mr-4"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(reserva.id)}
-                        className="text-red-600 hover:text-red-900"
-                      >
-                        Eliminar
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                reservas.map((reserva) => {
+                  const reservaStatus = getReservaStatus(
+                    reserva.fecha_inicio,
+                    reserva.fecha_fin
+                  );
+                  // Aplicar estilos según el estado temporal
+                  const rowClasses = `hover:bg-gray-50 ${
+                    reservaStatus === "past"
+                      ? "opacity-70"
+                      : reservaStatus === "active"
+                      ? "bg-yellow-50"
+                      : ""
+                  }`;
+                  const textClasses = {
+                    past: "italic text-gray-600",
+                    active: "font-semibold",
+                    future: "text-gray-900",
+                  };
+
+                  return (
+                    <tr key={reserva.id} className={rowClasses}>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div
+                          className={`font-medium ${textClasses[reservaStatus]}`}
+                        >
+                          {reserva.nombre}
+                          {reserva.source === "airbnb" && (
+                            <span className="ml-2 bg-red-100 text-red-700 text-xs px-1 py-0.5 rounded">
+                              Airbnb
+                            </span>
+                          )}
+                          {reservaStatus === "active" && (
+                            <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-1 py-0.5 rounded">
+                              Activa
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className={textClasses[reservaStatus]}>
+                          {reserva.cabañas?.nombre}
+                        </div>
+                        <div
+                          className={`${
+                            reservaStatus === "past"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          ${reserva.cabañas?.precio}/noche
+                        </div>
+                      </td>
+                      {/* Resto de celdas de la tabla... */}
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className={textClasses[reservaStatus]}>
+                          {reserva.cabañas?.ubicacion === "Serena"
+                            ? "La Serena"
+                            : reserva.cabañas?.ubicacion}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className={textClasses[reservaStatus]}>
+                          {format(
+                            parseISO(reserva.fecha_inicio),
+                            "dd/MM/yyyy",
+                            {
+                              locale: es,
+                            }
+                          )}
+                        </div>
+                        <div
+                          className={`${
+                            reservaStatus === "past"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          al{" "}
+                          {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
+                            locale: es,
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className={textClasses[reservaStatus]}>
+                          {reserva.email}
+                        </div>
+                        <div
+                          className={`${
+                            reservaStatus === "past"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {reserva.telefono}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap">
+                        <div className={textClasses[reservaStatus]}>
+                          {reserva.created_at
+                            ? format(
+                                parseISO(reserva.created_at),
+                                "dd/MM/yyyy HH:mm",
+                                {
+                                  locale: es,
+                                }
+                              )
+                            : "N/A"}
+                        </div>
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => handleEdit(reserva)}
+                          className="text-blue-600 hover:text-blue-900 mr-4"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(reserva.id)}
+                          className="text-red-600 hover:text-red-900"
+                        >
+                          Eliminar
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
@@ -499,97 +574,186 @@ const AdminReservas = () => {
 
         {/* Vista para móvil - Tarjetas en lugar de tabla */}
         <div className="md:hidden">
-          {/* ... código existente para la vista móvil ... */}
+          {/* ... código existente para la vista móvil ... */}{" "}
           {reservas.length > 0 ? (
             <div className="divide-y divide-gray-200">
-              {reservas.map((reserva) => (
-                <div key={reserva.id} className="p-4 hover:bg-gray-50">
-                  <div className="flex justify-between mb-2">
-                    <h3 className="font-bold text-gray-900">
-                      {reserva.nombre}
-                      {reserva.source === "airbnb" && (
-                        <span className="ml-2 bg-blue-100 text-blue-700 text-xs px-1 py-0.5 rounded">
-                          Airbnb
-                        </span>
-                      )}
-                    </h3>
-                    <span className="text-sm bg-gray-100 text-gray-800 py-1 px-2 rounded-full">
-                      {reserva.cabañas?.ubicacion === "Serena"
-                        ? "La Serena"
-                        : reserva.cabañas?.ubicacion}
-                    </span>
-                  </div>
+              {reservas.map((reserva) => {
+                const reservaStatus = getReservaStatus(
+                  reserva.fecha_inicio,
+                  reserva.fecha_fin
+                );
+                // Aplicar estilos según el estado temporal
+                const cardClasses = `p-4 hover:bg-gray-50 ${
+                  reservaStatus === "past"
+                    ? "opacity-70"
+                    : reservaStatus === "active"
+                    ? "bg-yellow-50"
+                    : ""
+                }`;
+                const textClasses = {
+                  past: "italic text-gray-600",
+                  active: "font-semibold",
+                  future: "text-gray-900",
+                };
 
-                  {/* Resto de la vista móvil... */}
-                  <div className="mb-2">
-                    <span className="text-gray-600 font-medium">Cabaña:</span>{" "}
-                    <span className="text-gray-900">
-                      {reserva.cabañas?.nombre}
-                    </span>
-                    <span className="block text-sm text-gray-500">
-                      ${reserva.cabañas?.precio}/noche
-                    </span>
-                  </div>
-
-                  <div className="mb-2">
-                    <span className="text-gray-600 font-medium">Fechas:</span>{" "}
-                    <span className="text-gray-900">
-                      {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
-                        locale: es,
-                      })}
-                    </span>
-                    <span className="text-gray-500">
-                      {" "}
-                      al{" "}
-                      {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
-                        locale: es,
-                      })}
-                    </span>
-                  </div>
-
-                  <div className="mb-2">
-                    <span className="text-gray-600 font-medium">Contacto:</span>{" "}
-                    <div>
-                      <span className="text-gray-900">{reserva.email}</span>
-                      <span className="block text-gray-500">
-                        {reserva.telefono}
+                return (
+                  <div key={reserva.id} className={cardClasses}>
+                    <div className="flex justify-between mb-2">
+                      <h3 className={`font-bold ${textClasses[reservaStatus]}`}>
+                        {reserva.nombre}
+                        {reserva.source === "airbnb" && (
+                          <span className="ml-2 bg-blue-100 text-blue-700 text-xs px-1 py-0.5 rounded">
+                            Airbnb
+                          </span>
+                        )}
+                        {reservaStatus === "active" && (
+                          <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs px-1 py-0.5 rounded">
+                            Activa
+                          </span>
+                        )}
+                      </h3>
+                      <span
+                        className={`text-sm bg-gray-100 py-1 px-2 rounded-full ${
+                          reservaStatus === "past"
+                            ? "text-gray-600"
+                            : "text-gray-800"
+                        }`}
+                      >
+                        {reserva.cabañas?.ubicacion === "Serena"
+                          ? "La Serena"
+                          : reserva.cabañas?.ubicacion}
                       </span>
                     </div>
-                  </div>
 
-                  <div className="mb-3">
-                    <span className="text-gray-600 font-medium">
-                      Reserva realizada:
-                    </span>{" "}
-                    <span className="text-gray-900">
-                      {reserva.created_at
-                        ? format(
-                            parseISO(reserva.created_at),
-                            "dd/MM/yyyy HH:mm",
-                            {
-                              locale: es,
-                            }
-                          )
-                        : "N/A"}
-                    </span>
-                  </div>
+                    {/* Resto de la vista móvil... */}
+                    <div className="mb-2">
+                      <span
+                        className={`${
+                          reservaStatus === "past"
+                            ? "text-gray-500"
+                            : "text-gray-600"
+                        } font-medium`}
+                      >
+                        Cabaña:
+                      </span>{" "}
+                      <span className={textClasses[reservaStatus]}>
+                        {reserva.cabañas?.nombre}
+                      </span>
+                      <span
+                        className={`block text-sm ${
+                          reservaStatus === "past"
+                            ? "text-gray-400"
+                            : "text-gray-500"
+                        }`}
+                      >
+                        ${reserva.cabañas?.precio}/noche
+                      </span>
+                    </div>
 
-                  <div className="flex space-x-3 mt-3 pt-3 border-t border-gray-100">
-                    <button
-                      onClick={() => handleEdit(reserva)}
-                      className="flex-1 bg-blue-50 text-blue-600 hover:bg-blue-100 py-2 rounded-md text-center font-medium"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(reserva.id)}
-                      className="flex-1 bg-red-50 text-red-600 hover:bg-red-100 py-2 rounded-md text-center font-medium"
-                    >
-                      Eliminar
-                    </button>
+                    <div className="mb-2">
+                      <span
+                        className={`${
+                          reservaStatus === "past"
+                            ? "text-gray-500"
+                            : "text-gray-600"
+                        } font-medium`}
+                      >
+                        Fechas:
+                      </span>{" "}
+                      <span className={textClasses[reservaStatus]}>
+                        {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
+                          locale: es,
+                        })}
+                      </span>
+                      <span
+                        className={
+                          reservaStatus === "past"
+                            ? "text-gray-400"
+                            : "text-gray-500"
+                        }
+                      >
+                        {" "}
+                        al{" "}
+                        {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
+                          locale: es,
+                        })}
+                      </span>
+                    </div>
+
+                    <div className="mb-2">
+                      <span
+                        className={`${
+                          reservaStatus === "past"
+                            ? "text-gray-500"
+                            : "text-gray-600"
+                        } font-medium`}
+                      >
+                        Contacto:
+                      </span>{" "}
+                      <div>
+                        <span className={textClasses[reservaStatus]}>
+                          {reserva.email}
+                        </span>
+                        <span
+                          className={`block ${
+                            reservaStatus === "past"
+                              ? "text-gray-400"
+                              : "text-gray-500"
+                          }`}
+                        >
+                          {reserva.telefono}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mb-3">
+                      <span
+                        className={`${
+                          reservaStatus === "past"
+                            ? "text-gray-500"
+                            : "text-gray-600"
+                        } font-medium`}
+                      >
+                        Reserva realizada:
+                      </span>{" "}
+                      <span className={textClasses[reservaStatus]}>
+                        {reserva.created_at
+                          ? format(
+                              parseISO(reserva.created_at),
+                              "dd/MM/yyyy HH:mm",
+                              {
+                                locale: es,
+                              }
+                            )
+                          : "N/A"}
+                      </span>
+                    </div>
+
+                    <div className="flex space-x-3 mt-3 pt-3 border-t border-gray-100">
+                      <button
+                        onClick={() => handleEdit(reserva)}
+                        className={`flex-1 ${
+                          reservaStatus === "past"
+                            ? "bg-blue-50 opacity-80"
+                            : "bg-blue-50"
+                        } text-blue-600 hover:bg-blue-100 py-2 rounded-md text-center font-medium`}
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleDelete(reserva.id)}
+                        className={`flex-1 ${
+                          reservaStatus === "past"
+                            ? "bg-red-50 opacity-80"
+                            : "bg-red-50"
+                        } text-red-600 hover:bg-red-100 py-2 rounded-md text-center font-medium`}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="p-6 text-center text-gray-500">

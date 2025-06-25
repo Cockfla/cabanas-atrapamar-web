@@ -1,18 +1,27 @@
 import React from "react";
 
 export default function ReservaResultadoContent({ reserva, error }) {
-  // Función para formatear fechas
+  // Función para formatear fechas de manera segura
   const formatFecha = (fechaStr) => {
     try {
-      return new Date(fechaStr).toLocaleDateString("es-ES", {
+      if (!fechaStr) return "Fecha no disponible";
+      const fecha = new Date(fechaStr);
+      if (isNaN(fecha.getTime())) return "Fecha no disponible";
+
+      return fecha.toLocaleDateString("es-ES", {
         day: "numeric",
         month: "long",
         year: "numeric",
       });
     } catch (e) {
+      console.error("Error al formatear fecha:", e);
       return "Fecha no disponible";
     }
   };
+
+  // Verificación de seguridad para reserva
+  const reservaData = reserva || {};
+  const cabañaData = reservaData.cabaña || {};
 
   if (error) {
     return (
@@ -53,8 +62,8 @@ export default function ReservaResultadoContent({ reserva, error }) {
     );
   }
 
-  const esReservaExitosa = reserva.estado === "confirmada";
-  const esReservaRechazada = reserva.estado === "fallida";
+  const esReservaExitosa = reservaData.estado === "confirmada";
+  const esReservaRechazada = reservaData.estado === "fallida";
   const esReservaPendiente = !esReservaExitosa && !esReservaRechazada;
 
   // Función para determinar el color de fondo según el estado
@@ -73,9 +82,9 @@ export default function ReservaResultadoContent({ reserva, error }) {
       let mensajeError = "Tu pago ha sido rechazado.";
       try {
         const paymentDetails =
-          typeof reserva.payment_details === "string"
-            ? JSON.parse(reserva.payment_details)
-            : reserva.payment_details;
+          typeof reservaData.payment_details === "string"
+            ? JSON.parse(reservaData.payment_details)
+            : reservaData.payment_details;
 
         // Verificar si hay información de status en los detalles de pago
         if (paymentDetails?.status?.message) {
@@ -184,32 +193,34 @@ export default function ReservaResultadoContent({ reserva, error }) {
           <div className="space-y-3">
             <div className="flex justify-between">
               <span className="text-gray-600">Número de reserva:</span>
-              <span className="font-medium">{reserva.id}</span>
+              <span className="font-medium">{reservaData.id || "N/A"}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Cabaña:</span>
               <span className="font-medium">
-                {reserva.cabaña?.nombre || "No disponible"}
+                {cabañaData.nombre || "No disponible"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Ubicación:</span>
               <span className="font-medium">
-                {reserva.cabaña?.ubicacion === "pichilemu"
+                {cabañaData.ubicacion === "pichilemu"
                   ? "Pichilemu"
-                  : "La Serena"}
+                  : cabañaData.ubicacion === "laserena"
+                  ? "La Serena"
+                  : "No disponible"}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Fecha de llegada:</span>
               <span className="font-medium">
-                {formatFecha(reserva.fecha_inicio)}
+                {formatFecha(reservaData.fecha_inicio)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">Fecha de salida:</span>
               <span className="font-medium">
-                {formatFecha(reserva.fecha_fin)}
+                {formatFecha(reservaData.fecha_fin)}
               </span>
             </div>
             <div className="flex justify-between">
@@ -233,7 +244,10 @@ export default function ReservaResultadoContent({ reserva, error }) {
             <div className="flex justify-between">
               <span className="text-gray-600">Monto total:</span>
               <span className="font-medium">
-                ${reserva.monto.toLocaleString("es-CL")}
+                $
+                {reservaData.monto
+                  ? reservaData.monto.toLocaleString("es-CL")
+                  : "0"}
               </span>
             </div>
           </div>
@@ -253,8 +267,8 @@ export default function ReservaResultadoContent({ reserva, error }) {
 
             {esReservaRechazada && (
               <a
-                href={`/reservas?retry=true&id=${reserva.id}&ubicacion=${
-                  reserva.cabaña?.ubicacion || "pichilemu"
+                href={`/reservas?retry=true&id=${reservaData.id}&ubicacion=${
+                  cabañaData.ubicacion || "pichilemu"
                 }`}
                 className="inline-block px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >

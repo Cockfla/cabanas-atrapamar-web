@@ -1,6 +1,6 @@
 ---
 import Layout from "../layouts/Layout.astro"; // Ajusta esta ruta según donde esté realmente el Layout
-import ReservaResultadoContent from "../components/reservas/ReservaResultadoContent.jsx";
+import ReservaResultadoWrapper from "../components/reservas/ReservaResultadoWrapper.jsx";
 import { supabase } from "../db/supabaseClient";
 
 // Obtener parámetros de la URL en Astro
@@ -40,8 +40,16 @@ if (!id || errorParam === "true") {
   error =
     "No se proporcionó un ID de reserva válido o hubo un error en el proceso de pago";
 }
+
+// Serializar datos para evitar problemas de hidratación
+const reservaData = reserva ? JSON.parse(JSON.stringify(reserva)) : null;
 ---
 
-<Layout title={reserva ? "Resumen de Reserva" : "Error en Reserva"}>
-  <ReservaResultadoContent reserva={reserva} error={error} client:load />
+<Layout title={reservaData ? "Resumen de Reserva" : "Error en Reserva"}>
+  <ReservaResultadoWrapper
+    reserva={reservaData}
+    error={error}
+    client:load
+    client:only="react"
+  />
 </Layout>

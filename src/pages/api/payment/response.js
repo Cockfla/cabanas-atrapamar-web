@@ -219,6 +219,17 @@ async function processResponse(request, isGet = false) {
     const redirectUrl = `${siteUrl}/reserva-resultado?id=${reservaId}&status=${estado}`;
     console.log("URL de redirección:", redirectUrl);
 
+    // Validar que la URL de redirección sea válida
+    try {
+      new URL(redirectUrl);
+    } catch (urlError) {
+      console.error("❌ URL de redirección inválida:", redirectUrl);
+      return Response.redirect(
+        `${siteUrl}/reserva-resultado?error=true&message=invalid-url`,
+        302
+      );
+    }
+
     return Response.redirect(redirectUrl, 302);
   } catch (error) {
     console.error("❌ Error al procesar respuesta de pago:", error);

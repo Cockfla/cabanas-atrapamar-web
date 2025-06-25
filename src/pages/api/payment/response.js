@@ -4,6 +4,18 @@ import crypto from "crypto";
 // Reutiliza la lógica principal en una función para evitar duplicidad
 async function processResponse(request, isGet = false) {
   try {
+    // Obtener la URL base del sitio
+    const siteUrl =
+      process.env.SITE_URL || "https://cabanas-atrapamar-web.vercel.app";
+
+    // Log inicial para debugging
+    console.log(
+      `[${new Date().toISOString()}] Procesando respuesta de pago - Método: ${
+        isGet ? "GET" : "POST"
+      }`
+    );
+    console.log("URL recibida:", request.url);
+
     // Obtener los datos dependiendo del método de la solicitud
     let requestId, reservaId;
 
@@ -12,11 +24,23 @@ async function processResponse(request, isGet = false) {
       const url = new URL(request.url);
       requestId = url.searchParams.get("requestId");
       reservaId = url.searchParams.get("id");
+
+      console.log("Parámetros GET detectados:", { requestId, reservaId });
+      console.log(
+        "Todos los parámetros URL:",
+        Object.fromEntries(url.searchParams.entries())
+      );
     } else {
       // Para solicitudes POST, los datos vienen como form-data
       const formData = await request.formData();
       requestId = formData.get("requestId");
       reservaId = new URL(request.url).searchParams.get("id");
+
+      console.log("Parámetros POST detectados:", { requestId, reservaId });
+      console.log(
+        "Todos los datos del formulario:",
+        Object.fromEntries(formData.entries())
+      );
     }
 
     if (!requestId && isGet) {
@@ -37,13 +61,22 @@ async function processResponse(request, isGet = false) {
       );
       const { data: reserva } = await supabase
         .from("reservas")
-        .select("transaction_token, id")
+        .select("transaction_token, id, estado")
         .eq("id", reservaId)
         .single();
 
       if (reserva && reserva.transaction_token) {
         requestId = reserva.transaction_token;
         console.log("RequestId encontrado en la base de datos:", requestId);
+
+        // Si la reserva ya está confirmada, redirigir directamente
+        if (reserva.estado === "confirmada") {
+          console.log("Reserva ya confirmada, redirigiendo...");
+          return Response.redirect(
+            `${siteUrl}/reserva-resultado?id=${reservaId}&status=confirmed`,
+            302
+          );
+        }
       } else {
         console.log("No se encontró transaction_token en la base de datos");
 
@@ -74,16 +107,37 @@ async function processResponse(request, isGet = false) {
         .eq("id", reservaId);
 
       // Redirigir al usuario a la página de resultado con estado pendiente
-      const siteUrl =
-        import.meta.env.PUBLIC_SITE_URL || "http://localhost:4321";
       const redirectUrl = `${siteUrl}/reserva-resultado?id=${reservaId}&status=pendiente`;
 
       return Response.redirect(redirectUrl, 302);
     }
 
     if (!reservaId) {
-      console.error("Falta el ID de reserva en la solicitud");
-      throw new Error("Falta el ID de reserva");
+      console.error("❌ Falta el ID de reserva en la solicitud");
+      console.log("URL analizada:", request.url);
+
+      // Intentar extraer ID de la URL de diferentes maneras
+      const url = new URL(request.url);
+      const possibleId =
+        url.searchParams.get("reserva_id") ||
+        url.searchParams.get("ref") ||
+        url.searchParams.get("reference");
+
+      if (possibleId) {
+        console.log("ID alternativo encontrado:", possibleId);
+        reservaId = possibleId;
+      } else {
+        return new Response(
+          JSON.stringify({
+            error: "Falta el ID de reserva",
+            received_params: Object.fromEntries(url.searchParams.entries()),
+          }),
+          {
+            status: 400,
+            headers: { "Content-Type": "application/json" },
+          }
+        );
+      }
     }
 
     // Si llegamos aquí, tenemos tanto requestId como reservaId
@@ -161,25 +215,40 @@ async function processResponse(request, isGet = false) {
       .eq("id", reservaId);
 
     // Redirigir al usuario a la página de resultado
-    const siteUrl = import.meta.env.PUBLIC_SITE_URL || "http://localhost:4321";
+    console.log(`✅ Redirigiendo usuario a resultado con estado: ${estado}`);
     const redirectUrl = `${siteUrl}/reserva-resultado?id=${reservaId}&status=${estado}`;
+    console.log("URL de redirección:", redirectUrl);
 
     return Response.redirect(redirectUrl, 302);
   } catch (error) {
-    console.error("Error al procesar respuesta de pago:", error);
+    console.error("❌ Error al procesar respuesta de pago:", error);
+    console.error("Stack trace:", error.stack);
 
-    const siteUrl = import.meta.env.PUBLIC_SITE_URL || "http://localhost:4321";
-    // Redireccionar a la página de resultado principal en lugar de una página de error dedicada
-    return Response.redirect(`${siteUrl}/reserva-resultado?error=true`, 302);
+    // Obtener la URL base para la redirección de error
+    const siteUrl =
+      process.env.SITE_URL || "https://cabanas-atrapamar-web.vercel.app";
+
+    // Redireccionar a la página de resultado con información de error
+    const errorUrl = `${siteUrl}/reserva-resultado?error=true&message=${encodeURIComponent(
+      error.message
+    )}`;
+    console.log("Redirigiendo a página de error:", errorUrl);
+
+    return Response.redirect(errorUrl, 302);
   }
 }
 
 // Manejador POST (existente)
 export const POST = async ({ request }) => {
+  console.log("🔄 Endpoint POST /api/payment/response llamado");
   return processResponse(request);
 };
 
 // Nuevo manejador GET
 export const GET = async ({ request }) => {
+  console.log("🔄 Endpoint GET /api/payment/response llamado");
   return processResponse(request, true);
 };
+
+// Agregar prerender false para que funcione en Vercel
+export const prerender = false;

@@ -77,7 +77,10 @@ export default function ReservaResultadoContent({ reserva, error }) {
             ? JSON.parse(reserva.payment_details)
             : reserva.payment_details;
 
-        if (paymentDetails?.payment?.[0]?.status?.message) {
+        // Verificar si hay información de status en los detalles de pago
+        if (paymentDetails?.status?.message) {
+          mensajeError += ` Motivo: ${paymentDetails.status.message}`;
+        } else if (paymentDetails?.payment?.[0]?.status?.message) {
           mensajeError += ` Motivo: ${paymentDetails.payment[0].status.message}`;
         }
       } catch (e) {
@@ -250,7 +253,9 @@ export default function ReservaResultadoContent({ reserva, error }) {
 
             {esReservaRechazada && (
               <a
-                href="/reservas"
+                href={`/reservas?retry=true&id=${reserva.id}&ubicacion=${
+                  reserva.cabaña?.ubicacion || "pichilemu"
+                }`}
                 className="inline-block px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
                 Intentar nuevamente

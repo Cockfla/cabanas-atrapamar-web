@@ -1,25 +1,102 @@
 ---
-import Header from "../components/Header.astro";
 import Layout from "../layouts/Layout.astro";
-import Main from "../components/Main.astro";
 import "../styles/global.css";
-import Tarifas from "../components/Tarifas.astro";
-import Ubicacion from "../components/Ubicacion.astro";
-import Servicios from "../components/Servicios.astro";
-import Contacto from "../components/Contacto.astro";
-import Footer from "../components/Footer.astro";
 
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
+const locations = [
+  {
+    name: "Pichilemu",
+    image: "/pichi1.jpg",
+    url: "/pichilemu",
+    description: "Cabañas en la capital mundial del surf",
+    locationId: "pichilemu",
+  },
+  {
+    name: "La Serena",
+    image: "/laserena1.jpg",
+    url: "/laserena",
+    description: "Cabañas frente al mar en el norte de Chile",
+    locationId: "laserena",
+  },
+];
 ---
 
 <Layout>
-  <main>
-    <Main />
-    <Tarifas />
-    <Servicios />
-    <Ubicacion />
-    <Contacto />
-    <Footer />
+  <main class="min-h-screen relative">
+    <!-- Logo y texto adaptados para mobile -->
+    <div
+      class="absolute md:top-6 left-1/2 transform -translate-x-1/2 z-30 text-center w-full px-4 sm:px-0 sm:w-auto
+     top-1/2 -translate-y-1/2 md:translate-y-0"
+    >
+      <img
+        src="/cabanas-atrapamar-log.png"
+        alt="Cabañas Atrapamar Logo"
+        class="w-28 sm:w-32 md:w-52 lg:w-52 h-auto drop-shadow-xl mx-auto"
+      />
+      <div
+        class="mt-2 py-2 px-3 md:px-6 rounded-full bg-black/40 backdrop-blur-sm"
+      >
+        <h1
+          class="text-lg sm:text-xl md:text-xl lg:text-2xl font-extrabold text-center tracking-wide"
+        >
+          <span class="text-transparent bg-clip-text bg-white">
+            ELIGE TU DESTINO
+          </span>
+        </h1>
+      </div>
+    </div>
+
+    <div class="flex flex-col md:flex-row h-screen">
+      {
+        locations.map((location) => (
+          <a
+            href={location.url}
+            class="relative flex-1 overflow-hidden group transition-all duration-500 min-h-[50vh] md:min-h-0"
+          >
+            <img
+              src={location.image}
+              alt={location.name}
+              class="w-full h-full object-cover brightness-75 group-hover:brightness-100 transition-all duration-500"
+            />
+            <div class="absolute inset-0 flex flex-col items-center justify-center text-white p-4 sm:p-6">
+              <h2 class="text-2xl sm:text-3xl md:text-5xl font-bold mb-1 sm:mb-2 text-center">
+                {location.name}
+              </h2>
+              <p class="text-base sm:text-lg md:text-xl text-center max-w-xs sm:max-w-sm md:max-w-md">
+                {location.description}
+              </p>
+              <button class="mt-3 sm:mt-4 md:mt-6 px-4 sm:px-6 md:px-8 py-2 sm:py-3 bg-white text-gray-800 font-semibold rounded-lg hover:bg-opacity-90 hover:scale-105 transition-all hover:cursor-pointer text-sm sm:text-base">
+                Ver Cabañas
+              </button>
+            </div>
+          </a>
+        ))
+      }
+    </div>
   </main>
 </Layout>
+
+<style>
+  /* Animación sutil para el logo */
+  .animate-pulse-soft {
+    animation: pulse-soft 4s infinite ease-in-out;
+  }
+
+  @keyframes pulse-soft {
+    0%,
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.7));
+    }
+    50% {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.9));
+    }
+  }
+
+  /* Media queries para ajustar los destinos en móvil */
+  @media (max-width: 768px) {
+    .flex-col > a:first-child {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+    }
+  }
+</style>

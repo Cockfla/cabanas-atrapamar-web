@@ -1,0 +1,228 @@
+---
+// Recibir la ubicación como prop
+const { location = "pichilemu" } = Astro.props as {
+  location?: "pichilemu" | "laserena";
+};
+
+// Configuración según ubicación
+const locationConfig: Record<
+  "pichilemu" | "laserena",
+  {
+    borderColor: string;
+    primaryBg: string;
+    primaryText: string;
+    title: string;
+    cabanas: string[];
+    showPichilemu: boolean;
+    showLaserena: boolean;
+  }
+> = {
+  pichilemu: {
+    borderColor: "border-red-500",
+    primaryBg: "bg-red-100",
+    primaryText: "text-red-600",
+    title: "Cabañas en Pichilemu",
+    cabanas: [
+      "Cabaña para 2 personas",
+      "Cabaña para 4 personas",
+      "Cabaña para 5 personas",
+      "Cabaña para 6 personas",
+      "Cabaña para 8 personas",
+    ],
+    showPichilemu: true,
+    showLaserena: false,
+  },
+  laserena: {
+    borderColor: "border-blue-500",
+    primaryBg: "bg-blue-100",
+    primaryText: "text-blue-600",
+    title: "Cabañas en La Serena",
+    cabanas: ["Cabaña El Faro (7-8 personas)", "Cabaña El Valle (4 personas)"],
+    showPichilemu: false,
+    showLaserena: true,
+  },
+};
+
+// Obtener la configuración según la ubicación seleccionada
+const config = locationConfig[location] || locationConfig.pichilemu;
+---
+
+<section
+  id="servicios"
+  class="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-gray-50 to-white"
+>
+  <div class="max-w-7xl mx-auto text-center">
+    <h1 class="text-4xl font-bold text-gray-900 mb-12">
+      <span class={`border-b-4 ${config.borderColor} pb-2`}
+        >Nuestros Servicios</span
+      >
+    </h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- Cabañas específicas de la ubicación -->
+      <div
+        class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class={`h-8 w-8 ${config.primaryText}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">{config.title}</h3>
+        <ul class="text-gray-600 space-y-2">
+          {
+            config.cabanas.map((cabana) => (
+              <li class="flex items-center justify-center">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5 text-green-500 mr-2"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+                {cabana}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <!-- Estacionamiento -->
+      <div
+        class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class={`h-8 w-8 ${config.primaryText}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Estacionamiento</h3>
+        <p class="text-gray-600">
+          Estacionamiento privado y seguro para nuestros huéspedes, con espacio
+          amplio para todos los vehículos.
+        </p>
+      </div>
+
+      <!-- Wi-Fi -->
+      <div
+        class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class={`h-8 w-8 ${config.primaryText}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">
+          Wi-Fi de Alta Velocidad
+        </h3>
+        <p class="text-gray-600">
+          Conexión rápida y estable en todas nuestras cabañas para que te
+          mantengas conectado durante tu estadía.
+        </p>
+      </div>
+
+      <!-- Quincho -->
+      <div
+        class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class={`h-8 w-8 ${config.primaryText}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Área de Parrillas</h3>
+        <p class="text-gray-600">
+          Espacio exclusivo con parrillas y mesones para disfrutar de deliciosos
+          asados al aire libre.
+        </p>
+      </div>
+
+      <!-- Pet Friendly -->
+      <div
+        class="bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300"
+      >
+        <div
+          class={`${config.primaryBg} w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4`}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class={`h-8 w-8 ${config.primaryText}`}
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+            ></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-bold text-gray-800 mb-3">Pet Friendly</h3>
+        <p class="text-gray-600">
+          Tu mascota es bienvenida. Disfruten juntos de unas vacaciones
+          inolvidables en nuestras cabañas.
+        </p>
+      </div>
+
+      <!-- Servicios adicionales específicos según ubicación -->
+    </div>
+  </div>
+</section>

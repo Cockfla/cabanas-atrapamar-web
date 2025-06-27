@@ -1,0 +1,69 @@
+---
+// src/components/WhatsAppWidget.astro
+// Recibe la ubicación como prop
+const { location = "pichilemu" }: { location?: keyof typeof contactConfig } =
+  Astro.props || {};
+
+// Configura número y mensaje según ubicación
+const contactConfig = {
+  pichilemu: {
+    whatsappNumber: "56961554758",
+    message:
+      "Hola, estoy interesado/a en las Cabañas Atrapa Mar de Pichilemu. ¿Podrían brindarme más información?",
+  },
+  laserena: {
+    whatsappNumber: "56961554758", // Puedes usar un número diferente si es necesario
+    message:
+      "Hola, estoy interesado/a en las Cabañas Atrapa Mar de La Serena. ¿Podrían brindarme más información?",
+  },
+};
+
+// Usar configuración según ubicación
+const config = contactConfig[location] || contactConfig.pichilemu;
+const whatsappUrl = `https://wa.me/${config.whatsappNumber}?text=${encodeURIComponent(config.message)}`;
+---
+
+<div class="fixed bottom-6 right-6 z-50">
+  <a
+    href={whatsappUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    class="flex items-center justify-center w-16 h-16 rounded-full bg-green-500 shadow-lg hover:bg-green-600 transition-all duration-300 hover:scale-110 animate-pulse"
+    aria-label="Contactar por WhatsApp"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="white"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      class="icon icon-tabler icons-tabler-outline icon-tabler-brand-whatsapp"
+      ><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path
+        d="M3 21l1.65 -3.8a9 9 0 1 1 3.4 2.9l-5.05 .9"></path><path
+        d="M9 10a.5 .5 0 0 0 1 0v-1a.5 .5 0 0 0 -1 0v1a5 5 0 0 0 5 5h1a.5 .5 0 0 0 0 -1h-1a.5 .5 0 0 0 0 1"
+      ></path></svg
+    >
+  </a>
+</div>
+
+<style>
+  /* Efecto de pulso opcional */
+  .animate-pulse {
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+</style>

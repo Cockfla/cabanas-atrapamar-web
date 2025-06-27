@@ -1,8 +1,47 @@
 ---
+import Header from "../components/ui/Header.astro";
 import Layout from "../layouts/Layout.astro";
 import "../styles/global.css";
+import Reserva from "../components/reservas/Reserva";
+
+// Obtener la ubicación desde la URL
+const ubicacionParam = Astro.url.searchParams.get("ubicacion") || "pichilemu";
+
+// Asegurarnos de que el location sea consistente para el componente Header
+const headerLocation =
+  ubicacionParam === "laserena" || ubicacionParam === "Serena"
+    ? "laserena"
+    : "pichilemu";
 ---
 
-<Layout>
-  <div class="text-4xl font bold text-center">TRABAJANDO...</div>
+<Layout title="Reservas">
+  <Header location={headerLocation} />
+  <Reserva client:load ubicacion={ubicacionParam} />
 </Layout>
+
+<script>
+  // Script opcional para mantener la ubicación como parámetro durante la navegación
+  document.addEventListener("DOMContentLoaded", () => {
+    const ubicacionActual =
+      new URLSearchParams(window.location.search).get("ubicacion") ||
+      "pichilemu";
+
+    // Asegurar que usamos el valor correcto para los enlaces
+    const normalizedUbicacion =
+      ubicacionActual.toLowerCase() === "serena"
+        ? "laserena"
+        : ubicacionActual.toLowerCase();
+
+    // Agregar la ubicación a todos los enlaces internos si es necesario
+    document.querySelectorAll('a[href^="/"]').forEach((anchor) => {
+      const href = anchor.getAttribute("href");
+      if (href && !href.includes("ubicacion=")) {
+        const separator = href.includes("?") ? "&" : "?";
+        anchor.setAttribute(
+          "href",
+          `${href}${separator}ubicacion=${normalizedUbicacion}`
+        );
+      }
+    });
+  });
+</script>

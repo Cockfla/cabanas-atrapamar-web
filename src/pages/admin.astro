@@ -1,0 +1,47 @@
+---
+import AdminReservas from "../components/reservas/AdminReservas";
+import Layout from "../layouts/Layout.astro";
+import "../styles/global.css";
+import Header from "../components/ui/Header.astro";
+import DisponibilidadCabanas from "../components/reservas/DisponibilidadCabañas";
+import { supabase } from "../db/supabaseClient";
+
+export const prerender = false;
+
+// Verificar autenticación
+const { cookies, redirect } = Astro;
+const accessToken = cookies.get("sb-access-token")?.value;
+const refreshToken = cookies.get("sb-refresh-token")?.value;
+
+// Si no hay tokens, redirigir al login
+if (!accessToken || !refreshToken) {
+  return redirect("/signin");
+}
+
+// Verificar que los tokens sean válidos
+try {
+  const {
+    data: { session },
+  } = await supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: refreshToken,
+  });
+
+  // Si no hay sesión válida, redirigir al login
+  if (!session) {
+    cookies.delete("sb-access-token", { path: "/" });
+    cookies.delete("sb-refresh-token", { path: "/" });
+    return redirect("/signin");
+  }
+} catch (error) {
+  console.error("Error de autenticación:", error);
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/signin");
+}
+---
+
+<Layout title="Admin">
+  <Header />
+  <AdminReservas client:load />
+</Layout>

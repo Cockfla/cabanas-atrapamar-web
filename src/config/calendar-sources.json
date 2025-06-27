@@ -1,0 +1,47 @@
+{
+  "cabanas": [
+    {
+      "id": "1",
+      "name": "Suite 2 Personas",
+      "icalUrl": "https://www.airbnb.com/calendar/ical/12345.ics",
+      "enabled": false
+    },
+    {
+      "id": "2",
+      "name": "Cabaña 4 Personas",
+      "icalUrl": "https://www.airbnb.cl/calendar/ical/1398778476008792616.ics?s=b2c664b3b0474bace358fa528c20a1a1",
+      "enabled": true
+    },
+    {
+      "id": "3",
+      "name": "Cabaña 5 Personas",
+      "icalUrl": "https://www.airbnb.cl/calendar/ical/1398778476008792616.ics?s=b2c664b3b0474bace358fa528c20a1a1",
+      "enabled": false
+    },
+    {
+      "id": "4",
+      "name": "Cabaña 6 Personas",
+      "icalUrl": "https://www.airbnb.cl/calendar/ical/1398778476008792616.ics?s=b2c664b3b0474bace358fa528c20a1a1",
+      "enabled": false
+    },
+    {
+      "id": "5",
+      "name": "Cabaña 8 Personas",
+      "icalUrl": "https://www.airbnb.cl/calendar/ical/1398778476008792616.ics?s=b2c664b3b0474bace358fa528c20a1a1",
+      "enabled": true
+    },
+    {
+      "id": "6",
+      "name": "Cabaña el Faro",
+      "icalUrl": "https://www.airbnb.cl/calendar/ical/1403766705971916478.ics?s=9a4687c36c405442af07c073c04f04ab",
+      "enabled": true
+    },
+    {
+      "id": "7",
+      "name": "Cabaña el Valle",
+      "icalUrl": "https://www.airbnb.cl/calendar/ical/1400985744213247233.ics?s=b3d13a49063bf1a80d80587bb2511a8d",
+      "enabled": true
+    }
+  ],
+  "syncInterval": "1h"
+}

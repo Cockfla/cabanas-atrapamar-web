@@ -1,6 +1,6 @@
 # Cabañas Atrapamar - Pichilemu
 
-![Logo Cabañas Atrapamar]([cabanas-atrapamar-letras.png](https://cabanas-atrapamar-web.vercel.app/cabanas-atrapamar-log.png))
+![Logo Cabañas Atrapamar](<[cabanas-atrapamar-letras.png](https://cabanas-atrapamar-web.vercel.app/cabanas-atrapamar-log.png)>)
 
 ## Descripción
 

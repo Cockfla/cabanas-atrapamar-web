@@ -29,7 +29,7 @@ Avenida Comercio con pasaje La Estrella #230, Pichilemu
 
 ### Síguenos en redes sociales:
 
-[![Instagram](https://img.shields.io/badge/Instagram-@atrapamar__pichilemu-E4405F?style=for-the-badge&logo=instagram)](https://www.instagram.com/atrapamar_pichilemu)  
+[![Instagram](https://img.shields.io/badge/Instagram-@atrapamar__pichilemu-E4405F?style=for-the-badge&logo=instagram)](https://www.instagram.com/atrapamar_cabanas)  
 [![Facebook](https://img.shields.io/badge/Facebook-Cabañas_Pichilemu-1877F2?style=for-the-badge&logo=facebook)](https://www.facebook.com/cabanaspichilemu.garridoabarca)
 
 ## Cómo reservar

@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { useForm } from 'react-hook-form'
-import DatePicker from 'react-datepicker'
-import 'react-datepicker/dist/react-datepicker.css'
-import { supabase } from '../../db/supabaseClient'
+import React, { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { supabase } from "../../db/supabaseClient";
 
 const ReservaForm = ({
   cabañas,
   onCheckDisponibilidad,
-  ubicacion = 'Pichilemu',
+  ubicacion = "Pichilemu",
 }) => {
   const {
     register,
@@ -15,97 +15,97 @@ const ReservaForm = ({
     formState: { errors },
     watch,
     reset,
-  } = useForm()
+  } = useForm();
 
-  const [fechaInicio, setFechaInicio] = useState(null)
-  const [fechaFin, setFechaFin] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
-  const [reservedDates, setReservedDates] = useState([])
-  const [currentMonth, setCurrentMonth] = useState(new Date())
-  const [cabañaSeleccionada, setCabañaSeleccionada] = useState(null)
-  const [capacidadDisponible, setCapacidadDisponible] = useState({})
-  const [isProcessingPayment, setIsProcessingPayment] = useState(false)
-  const cabañaId = watch('cabaña_id')
+  const [fechaInicio, setFechaInicio] = useState(null);
+  const [fechaFin, setFechaFin] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [reservedDates, setReservedDates] = useState([]);
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [cabañaSeleccionada, setCabañaSeleccionada] = useState(null);
+  const [capacidadDisponible, setCapacidadDisponible] = useState({});
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+  const cabañaId = watch("cabaña_id");
 
   const changeMonth = (increment) => {
-    const newMonth = new Date(currentMonth)
-    newMonth.setMonth(newMonth.getMonth() + increment)
-    setCurrentMonth(newMonth)
-  }
+    const newMonth = new Date(currentMonth);
+    newMonth.setMonth(newMonth.getMonth() + increment);
+    setCurrentMonth(newMonth);
+  };
 
   useEffect(() => {
-    if (!cabañaId) return
+    if (!cabañaId) return;
 
     const fetchReservedDates = async () => {
       try {
         // Primero, obtener capacidad de la cabaña seleccionada
         const { data: cabañaData } = await supabase
-          .from('cabañas')
-          .select('*')
-          .eq('id', cabañaId)
-          .single()
+          .from("cabañas")
+          .select("*")
+          .eq("id", cabañaId)
+          .single();
 
-        setCabañaSeleccionada(cabañaData)
+        setCabañaSeleccionada(cabañaData);
 
         // Luego, obtener las reservas
         const { data } = await supabase
-          .from('reservas')
-          .select('fecha_inicio, fecha_fin')
-          .eq('cabaña_id', cabañaId)
+          .from("reservas")
+          .select("fecha_inicio, fecha_fin")
+          .eq("cabaña_id", cabañaId);
 
         // Crear un mapa de fechas con contador de reservas
-        const reservasPorFecha = {}
-        const disponibilidadPorFecha = {}
+        const reservasPorFecha = {};
+        const disponibilidadPorFecha = {};
 
         data.forEach((reserva) => {
-          const start = new Date(reserva.fecha_inicio)
-          const end = new Date(reserva.fecha_fin)
+          const start = new Date(reserva.fecha_inicio);
+          const end = new Date(reserva.fecha_fin);
 
           for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-            const dateString = d.toISOString().split('T')[0]
+            const dateString = d.toISOString().split("T")[0];
             reservasPorFecha[dateString] =
-              (reservasPorFecha[dateString] || 0) + 1
+              (reservasPorFecha[dateString] || 0) + 1;
             disponibilidadPorFecha[dateString] =
-              cabañaData.capacidad - reservasPorFecha[dateString]
+              cabañaData.capacidad - reservasPorFecha[dateString];
           }
-        })
+        });
 
-        setCapacidadDisponible(disponibilidadPorFecha)
+        setCapacidadDisponible(disponibilidadPorFecha);
 
         // Actualizar el array de fechas reservadas (para DatePicker)
         const fechasCompletas = Object.entries(reservasPorFecha)
           .filter(([fecha, count]) => count >= cabañaData.capacidad)
-          .map(([fecha]) => new Date(fecha))
+          .map(([fecha]) => new Date(fecha));
 
-        setReservedDates(fechasCompletas)
+        setReservedDates(fechasCompletas);
       } catch (error) {
-        console.error('Error fetching reserved dates:', error)
+        console.error("Error fetching reserved dates:", error);
       }
-    }
+    };
 
-    fetchReservedDates()
-  }, [cabañaId])
+    fetchReservedDates();
+  }, [cabañaId]);
 
   // Personalizar la visualización de días en el DatePicker
   const dayClassName = (date) => {
-    const dateString = date.toISOString().split('T')[0]
-    const disponibles = capacidadDisponible[dateString]
+    const dateString = date.toISOString().split("T")[0];
+    const disponibles = capacidadDisponible[dateString];
 
-    if (!cabañaSeleccionada) return undefined
+    if (!cabañaSeleccionada) return undefined;
 
-    if (disponibles === 0) return 'bg-red-100 text-red-500'
+    if (disponibles === 0) return "bg-red-100 text-red-500";
     if (disponibles < cabañaSeleccionada.capacidad)
-      return 'bg-orange-100 text-orange-700'
-    return undefined
-  }
+      return "bg-orange-100 text-orange-700";
+    return undefined;
+  };
 
   // Función para renderizar tooltip con disponibilidad
   const renderDayContents = (day, date) => {
-    const dateString = date.toISOString().split('T')[0]
-    const disponibles = capacidadDisponible[dateString]
+    const dateString = date.toISOString().split("T")[0];
+    const disponibles = capacidadDisponible[dateString];
 
-    if (!cabañaSeleccionada || disponibles === undefined) return day
+    if (!cabañaSeleccionada || disponibles === undefined) return day;
 
     return (
       <div className="relative" title={`${disponibles} disponibles`}>
@@ -114,44 +114,44 @@ const ReservaForm = ({
           {disponibles}/{cabañaSeleccionada?.capacidad || 1}
         </div>
       </div>
-    )
-  }
+    );
+  };
 
   const onSubmit = async (data) => {
-    setLoading(true)
+    setLoading(true);
     try {
       // Formatear las fechas correctamente en YYYY-MM-DD
       const formatearFecha = (fecha) => {
-        const year = fecha.getFullYear()
-        const month = String(fecha.getMonth() + 1).padStart(2, '0')
-        const day = String(fecha.getDate()).padStart(2, '0')
-        return `${year}-${month}-${day}`
-      }
+        const year = fecha.getFullYear();
+        const month = String(fecha.getMonth() + 1).padStart(2, "0");
+        const day = String(fecha.getDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+      };
 
       // Obtener el precio de la cabaña seleccionada
       const cabañaSeleccionada = cabañas.find(
         (c) => c.id === parseInt(data.cabaña_id)
-      )
+      );
       if (!cabañaSeleccionada) {
-        throw new Error('Cabaña no encontrada')
+        throw new Error("Cabaña no encontrada");
       }
 
       // Calcular número de noches
-      const fechaInicioObj = new Date(fechaInicio)
-      const fechaFinObj = new Date(fechaFin)
-      const diffTime = Math.abs(fechaFinObj - fechaInicioObj)
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+      const fechaInicioObj = new Date(fechaInicio);
+      const fechaFinObj = new Date(fechaFin);
+      const diffTime = Math.abs(fechaFinObj - fechaInicioObj);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
       // Calcular monto total (precio por noche * número de noches)
-      const montoTotal = cabañaSeleccionada.precio * diffDays
+      const montoTotal = cabañaSeleccionada.precio * diffDays;
 
-      setIsProcessingPayment(true)
+      setIsProcessingPayment(true);
 
       // Iniciar proceso de pago con Getnet
-      const paymentResponse = await fetch('/api/payment/create-transaction', {
-        method: 'POST',
+      const paymentResponse = await fetch("/api/payment/create-transaction", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           nombre: data.nombre,
@@ -162,28 +162,28 @@ const ReservaForm = ({
           fecha_fin: formatearFecha(fechaFin),
           monto: montoTotal,
         }),
-      })
+      });
 
-      const paymentData = await paymentResponse.json()
+      const paymentData = await paymentResponse.json();
 
       if (paymentData.success && paymentData.redirect_url) {
         // Redirigir al usuario a la pasarela de pago de Getnet
-        window.location.href = paymentData.redirect_url
+        window.location.href = paymentData.redirect_url;
       } else {
-        throw new Error(paymentData.message || 'Error al procesar el pago')
+        throw new Error(paymentData.message || "Error al procesar el pago");
       }
     } catch (error) {
-      setIsProcessingPayment(false)
-      alert('Error al reservar: ' + error.message)
+      setIsProcessingPayment(false);
+      alert("Error al reservar: " + error.message);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="max-w-4xl mx-auto bg-gray-200 rounded-xl shadow-md overflow-hidden p-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
-        {ubicacion ? `Reserva tu Cabaña en ${ubicacion}` : 'Reserva tu Cabaña'}
+        {ubicacion ? `Reserva tu Cabaña en ${ubicacion}` : "Reserva tu Cabaña"}
       </h2>
 
       {success && (
@@ -199,9 +199,9 @@ const ReservaForm = ({
               Nombre completo
             </label>
             <input
-              {...register('nombre', { required: 'Este campo es obligatorio' })}
+              {...register("nombre", { required: "Este campo es obligatorio" })}
               className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.nombre ? 'border-red-500' : 'border-gray-300'
+                errors.nombre ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Ej: Juan Pérez"
             />
@@ -218,15 +218,15 @@ const ReservaForm = ({
             </label>
             <input
               type="email"
-              {...register('email', {
-                required: 'Este campo es obligatorio',
+              {...register("email", {
+                required: "Este campo es obligatorio",
                 pattern: {
                   value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-                  message: 'Correo electrónico inválido',
+                  message: "Correo electrónico inválido",
                 },
               })}
               className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.email ? 'border-red-500' : 'border-gray-300'
+                errors.email ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Ej: juan@example.com"
             />
@@ -242,15 +242,15 @@ const ReservaForm = ({
               Teléfono de contacto
             </label>
             <input
-              {...register('telefono', {
-                required: 'Este campo es obligatorio',
+              {...register("telefono", {
+                required: "Este campo es obligatorio",
                 pattern: {
                   value: /^[0-9]{9,12}$/,
-                  message: 'Teléfono inválido',
+                  message: "Teléfono inválido",
                 },
               })}
               className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.telefono ? 'border-red-500' : 'border-gray-300'
+                errors.telefono ? "border-red-500" : "border-gray-300"
               }`}
               placeholder="Ej: 912345678"
             />
@@ -263,14 +263,14 @@ const ReservaForm = ({
 
           <div>
             <label className="block text-gray-700 text-sm font-medium mb-1">
-              Selecciona tu cabaña {ubicacion ? `en ${ubicacion}` : ''}
+              Selecciona tu cabaña {ubicacion ? `en ${ubicacion}` : ""}
             </label>
             <select
-              {...register('cabaña_id', {
-                required: 'Debes seleccionar una cabaña',
+              {...register("cabaña_id", {
+                required: "Debes seleccionar una cabaña",
               })}
               className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.cabaña_id ? 'border-red-500' : 'border-gray-300'
+                errors.cabaña_id ? "border-red-500" : "border-gray-300"
               }`}
             >
               <option value="">-- Selecciona una opción --</option>
@@ -280,8 +280,8 @@ const ReservaForm = ({
                   value={cabaña.id}
                   disabled={!cabaña.disponible}
                 >
-                  {cabaña.nombre} - ${cabaña.precio}{' '}
-                  {!cabaña.disponible && '(No disponible)'}
+                  {cabaña.nombre} - ${cabaña.precio}{" "}
+                  {!cabaña.disponible && "(No disponible)"}
                 </option>
               ))}
             </select>
@@ -302,9 +302,9 @@ const ReservaForm = ({
               <DatePicker
                 selected={fechaInicio}
                 onChange={(date) => {
-                  setFechaInicio(date)
+                  setFechaInicio(date);
                   if (fechaFin && date > fechaFin) {
-                    setFechaFin(null)
+                    setFechaFin(null);
                   }
                 }}
                 minDate={new Date()}
@@ -349,8 +349,8 @@ const ReservaForm = ({
           disabled={loading || isProcessingPayment || !fechaInicio || !fechaFin}
           className={`w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition duration-200 ${
             loading || isProcessingPayment || !fechaInicio || !fechaFin
-              ? 'opacity-70 cursor-not-allowed'
-              : ''
+              ? "opacity-70 cursor-not-allowed"
+              : ""
           }`}
         >
           {loading || isProcessingPayment ? (
@@ -376,21 +376,35 @@ const ReservaForm = ({
                 ></path>
               </svg>
               {isProcessingPayment
-                ? 'Redirigiendo al pago...'
-                : 'Procesando reserva...'}
+                ? "Redirigiendo al pago..."
+                : "Procesando reserva..."}
             </span>
           ) : (
-            'Continuar al pago'
+            "Continuar al pago"
           )}
         </button>
+        <div className="flex justify-center flex-col items-center gap-2">
+          <img
+            src="/Logo_WebCheckout_Getnet.svg"
+            alt="Getnet"
+            width={120}
+            height={120}
+          />
+        </div>
 
         <p className="text-xs text-gray-500 text-center">
-          Al reservar, aceptas nuestros términos y condiciones. Serás redirigido
-          a nuestra pasarela de pagos segura.
+          Al reservar, aceptas nuestros{" "}
+          <a
+            href="http://localhost:4321/terminos-y-condiciones"
+            className="underline hover:text-blue-500"
+          >
+            términos y condiciones.
+          </a>{" "}
+          Serás redirigido a nuestra pasarela de pagos segura.
         </p>
       </form>
     </div>
-  )
-}
+  );
+};
 
-export default ReservaForm
+export default ReservaForm;

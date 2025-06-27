@@ -9,13 +9,13 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@astrojs/react": "^4.2.7",
-    "@astrojs/vercel": "^8.1.4",
+    "@astrojs/react": "^4.3.0",
+    "@astrojs/vercel": "^8.2.0",
     "@supabase/supabase-js": "^2.49.4",
     "@tailwindcss/vite": "^4.0.15",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
-    "astro": "^5.7.11",
+    "astro": "^5.10.1",
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "ical-generator": "^8.1.1",

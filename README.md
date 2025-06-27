@@ -1,6 +1,6 @@
 # Cabañas Atrapamar
 
-![Logo Cabañas Atrapamar](https://cabanas-atrapamar-web.vercel.app/cabanas-atrapamar-log.png)
+![Logo Cabañas Atrapamar](https://atrapamar.cl/cabanas-atrapamar-log.png)
 
 ## Descripción
 
@@ -90,6 +90,6 @@ Marejadas 658, Caleta San Pedro, La Serena
 
 ## Sitio Web
 
-🌐 **Visita nuestro sitio web:** [cabanas-atrapamar-web.vercel.app](https://cabanas-atrapamar-web.vercel.app)
+🌐 **Visita nuestro sitio web:** [www.atrapamar.cl](https://www.atrapamar.cl)
 
 ¡Te esperamos para vivir una experiencia única en cualquiera de nuestros destinos!

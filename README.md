@@ -1,12 +1,14 @@
-# Cabañas Atrapamar - Pichilemu
+# Cabañas Atrapamar
 
-![Logo Cabañas Atrapamar](<[cabanas-atrapamar-letras.png](https://cabanas-atrapamar-web.vercel.app/cabanas-atrapamar-log.png)>)
+![Logo Cabañas Atrapamar](https://cabanas-atrapamar-web.vercel.app/cabanas-atrapamar-log.png)
 
 ## Descripción
 
-Bienvenido a **Cabañas Atrapamar**, tu refugio costero en Pichilemu, la capital mundial del surf. Ofrecemos alojamiento cómodo y acogedor a solo 10 minutos caminando del centro y la playa principal.
+Bienvenido a **Cabañas Atrapamar**, tu refugio costero en dos destinos únicos de Chile. Ofrecemos alojamiento cómodo y acogedor en **Pichilemu** (capital mundial del surf) y **La Serena** (ciudad de los campanarios).
 
-## Ubicación Privilegiada
+## Nuestras Ubicaciones
+
+### 🏄‍♂️ Pichilemu - Capital Mundial del Surf
 
 📍 **Dirección exacta:**  
 Avenida Comercio con pasaje La Estrella #230, Pichilemu
@@ -14,13 +16,43 @@ Avenida Comercio con pasaje La Estrella #230, Pichilemu
 - A 10 minutos caminando del Centro y la Playa Principal
 - En el corazón de la cultura surfista de Chile
 - Acceso fácil a las mejores playas de la región
+- Playas de clase mundial para surfear
+- Vibrante vida nocturna y gastronomía local
 
-## Características
+### 🌊 La Serena - Ciudad de los Campanarios
 
-- Cabañas totalmente equipadas
-- Capacidad para diferentes tamaños de grupos
-- Ubicación cercana a atracciones principales
-- Ambiente familiar y seguro
+📍 **Dirección exacta:**  
+Marejadas 658, Caleta San Pedro, La Serena
+
+- Ubicación privilegiada frente al mar
+- Cerca de todos los servicios y atracciones
+- Hermosas playas y rica cultura nortina
+- Paisajes naturales impresionantes
+- Tranquilidad y conexión con la naturaleza
+
+## Características de Nuestras Cabañas
+
+- **Cabañas totalmente equipadas** con todo lo necesario para tu estadía
+- **Capacidad para diferentes tamaños de grupos** (2, 4, 5, 6 y 8 personas)
+- **Ubicación cercana a atracciones principales** en ambas ciudades
+- **Ambiente familiar y seguro** para disfrutar con toda la familia
+- **Reservas online** con sistema de disponibilidad en tiempo real
+- **Pagos seguros** con múltiples métodos de pago
+
+## Cabañas Disponibles
+
+### Pichilemu
+
+- Cabaña 2 personas
+- Cabaña 4 personas
+- Cabaña 5 personas
+- Cabaña 6 personas
+- Cabaña 8 personas
+
+### La Serena
+
+- Cabañas El Faro
+- Cabañas El Valle
 
 ## Contacto
 
@@ -34,18 +66,30 @@ Avenida Comercio con pasaje La Estrella #230, Pichilemu
 
 ## Cómo reservar
 
-1. Contáctanos por WhatsApp, email o redes sociales
-2. Consulta disponibilidad para tus fechas deseadas
-3. Confirma tu reserva con el pago correspondiente
-4. ¡Prepárate para disfrutar de Pichilemu!
+1. **Visita nuestro sitio web** y consulta disponibilidad en tiempo real
+2. **Selecciona tus fechas** y la cabaña que prefieras
+3. **Completa el formulario** con tus datos
+4. **Confirma tu reserva** con el pago correspondiente
+5. **¡Prepárate para disfrutar!**
 
 ## Experiencia Atrapamar
 
-Disfruta de:
+### En Pichilemu:
 
 - Playas de clase mundial para surfear
 - Vibrante vida nocturna y gastronomía local
 - Paisajes naturales impresionantes
 - Tranquilidad y conexión con la naturaleza
 
-¡Te esperamos para vivir una experiencia única en Pichilemu!
+### En La Serena:
+
+- Hermosas playas del norte de Chile
+- Rica cultura nortina y gastronomía local
+- Paisajes desérticos y costeros únicos
+- Clima privilegiado durante todo el año
+
+## Sitio Web
+
+🌐 **Visita nuestro sitio web:** [cabanas-atrapamar-web.vercel.app](https://cabanas-atrapamar-web.vercel.app)
+
+¡Te esperamos para vivir una experiencia única en cualquiera de nuestros destinos!

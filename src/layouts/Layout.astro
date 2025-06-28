@@ -1,6 +1,7 @@
 ---
 import Footer from "../components/ui/Footer.astro";
 import "../styles/global.css";
+import Analytics from "@vercel/analytics/astro";
 ---
 
 <!doctype html>
@@ -50,6 +51,7 @@ import "../styles/global.css";
       property="og:image"
       content="https://www.atrapamar.cl/cabanas-atrapamar-log.png"
     />
+    <Analytics />
   </head>
   <body>
     <slot />

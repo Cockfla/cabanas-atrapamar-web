@@ -10,6 +10,7 @@ import InstagramFeed from "../components/ui/Instagram-Feed.astro";
 import Reglamento from "../components/ui/Reglamento.astro";
 import DisponibilidadCabañas from "../components/reservas/DisponibilidadCabañas.jsx";
 import WhatsappWidget from "../components/ui/WhatsappWidget.astro";
+import ReservaFloatingButton from "../components/ui/ReservaFloatingButton.astro";
 
 export const prerender = false;
 ---
@@ -17,6 +18,7 @@ export const prerender = false;
 <Layout>
   <main>
     <WhatsappWidget location="pichilemu" />
+    <ReservaFloatingButton location="pichilemu" />
     <Header location="pichilemu" />
     <Main location="pichilemu" />
     <Tarifas location="pichilemu" />

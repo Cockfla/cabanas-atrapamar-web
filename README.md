@@ -93,3 +93,102 @@ Marejadas 658, Caleta San Pedro, La Serena
 🌐 **Visita nuestro sitio web:** [www.atrapamar.cl](https://www.atrapamar.cl)
 
 ¡Te esperamos para vivir una experiencia única en cualquiera de nuestros destinos!
+
+# Cabañas Atrapa Mar
+
+Sitio web para la gestión de reservas de cabañas en Pichilemu y La Serena, Chile.
+
+## 🚀 Inicio Rápido
+
+### Instalación
+
+```bash
+npm install
+```
+
+### Desarrollo
+
+```bash
+npm run dev
+```
+
+### Para evitar el mensaje "Sitio peligroso" en Chrome:
+
+1. **Opción 1: Usar localhost en lugar de IP**
+
+   - Accede a `http://localhost:4321` en lugar de la IP
+   - Chrome confía más en localhost
+
+2. **Opción 2: Configurar certificado local (Recomendado)**
+
+   ```bash
+   # Instalar mkcert
+   brew install mkcert
+
+   # Generar certificados locales
+   mkcert -install
+   mkcert localhost 127.0.0.1
+
+   # Iniciar con HTTPS
+   npm run dev:https
+   ```
+
+3. **Opción 3: Deshabilitar advertencias de seguridad (Solo desarrollo)**
+   - En Chrome, ve a `chrome://flags/`
+   - Busca "Insecure origins treated as secure"
+   - Agrega `http://localhost:4321` y `http://127.0.0.1:4321`
+
+### Variables de Entorno
+
+Crea un archivo `.env` en la raíz del proyecto:
+
+```env
+PUBLIC_SUPABASE_URL=tu_url_de_supabase
+PUBLIC_SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
+```
+
+## 🔒 Seguridad
+
+El proyecto incluye múltiples capas de seguridad:
+
+- ✅ Protección CSRF
+- ✅ Rate limiting
+- ✅ Headers de seguridad
+- ✅ Validación de entrada
+- ✅ Cookies seguras
+- ✅ Prevención de clickjacking
+
+## 📁 Estructura del Proyecto
+
+```
+src/
+├── components/     # Componentes React y Astro
+├── pages/         # Páginas y API routes
+├── layouts/       # Layouts de Astro
+├── styles/        # Estilos CSS
+├── utils/         # Utilidades
+└── db/           # Configuración de base de datos
+```
+
+## 🛠️ Tecnologías
+
+- **Astro** - Framework web
+- **React** - Componentes interactivos
+- **Supabase** - Base de datos y autenticación
+- **Tailwind CSS** - Estilos
+- **TypeScript** - Tipado estático
+
+## 📝 Scripts Disponibles
+
+- `npm run dev` - Servidor de desarrollo
+- `npm run dev:https` - Servidor con HTTPS
+- `npm run build` - Construir para producción
+- `npm run preview` - Vista previa de producción
+
+## 🔧 Configuración de Producción
+
+El proyecto está configurado para desplegar en Vercel con:
+
+- Headers de seguridad automáticos
+- HTTPS obligatorio
+- Optimizaciones de rendimiento

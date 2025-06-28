@@ -25,6 +25,20 @@ import "../styles/global.css";
     />
     <meta name="author" content="Cofla.Dev" />
 
+    <!-- Meta tags de seguridad -->
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="X-Frame-Options" content="DENY" />
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
+    {
+      import.meta.env.PROD && (
+        <meta
+          http-equiv="Strict-Transport-Security"
+          content="max-age=31536000; includeSubDomains; preload"
+        />
+      )
+    }
+
     <!-- Facebook Meta Tags -->
     <meta property="og:url" content="https://www.atrapamar.cl" />
     <meta property="og:type" content="website" />

@@ -429,7 +429,6 @@ const AdminReservas = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {" "}
               {reservas.length > 0 ? (
                 reservas.map((reserva) => {
                   const reservaStatus = getReservaStatus(
@@ -574,7 +573,6 @@ const AdminReservas = () => {
 
         {/* Vista para móvil - Tarjetas en lugar de tabla */}
         <div className="md:hidden">
-          {/* ... código existente para la vista móvil ... */}{" "}
           {reservas.length > 0 ? (
             <div className="divide-y divide-gray-200">
               {reservas.map((reserva) => {
@@ -635,7 +633,7 @@ const AdminReservas = () => {
                         } font-medium`}
                       >
                         Cabaña:
-                      </span>{" "}
+                      </span>
                       <span className={textClasses[reservaStatus]}>
                         {reserva.cabañas?.nombre}
                       </span>
@@ -659,7 +657,7 @@ const AdminReservas = () => {
                         } font-medium`}
                       >
                         Fechas:
-                      </span>{" "}
+                      </span>
                       <span className={textClasses[reservaStatus]}>
                         {format(parseISO(reserva.fecha_inicio), "dd/MM/yyyy", {
                           locale: es,
@@ -672,7 +670,6 @@ const AdminReservas = () => {
                             : "text-gray-500"
                         }
                       >
-                        {" "}
                         al{" "}
                         {format(parseISO(reserva.fecha_fin), "dd/MM/yyyy", {
                           locale: es,
@@ -689,7 +686,7 @@ const AdminReservas = () => {
                         } font-medium`}
                       >
                         Contacto:
-                      </span>{" "}
+                      </span>
                       <div>
                         <span className={textClasses[reservaStatus]}>
                           {reserva.email}
@@ -715,7 +712,7 @@ const AdminReservas = () => {
                         } font-medium`}
                       >
                         Reserva realizada:
-                      </span>{" "}
+                      </span>
                       <span className={textClasses[reservaStatus]}>
                         {reserva.created_at
                           ? format(

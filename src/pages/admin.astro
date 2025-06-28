@@ -3,6 +3,7 @@ import AdminReservas from "../components/reservas/AdminReservas";
 import Layout from "../layouts/Layout.astro";
 import "../styles/global.css";
 import Header from "../components/ui/Header.astro";
+import LogoutButton from "../components/ui/LogoutButton.astro";
 import DisponibilidadCabanas from "../components/reservas/DisponibilidadCabañas";
 import { supabase } from "../db/supabaseClient";
 
@@ -12,9 +13,13 @@ export const prerender = false;
 const { cookies, redirect } = Astro;
 const accessToken = cookies.get("sb-access-token")?.value;
 const refreshToken = cookies.get("sb-refresh-token")?.value;
+const sessionActive = cookies.get("session-active")?.value;
 
-// Si no hay tokens, redirigir al login
-if (!accessToken || !refreshToken) {
+// Si no hay tokens o sesión activa, redirigir al login
+if (!accessToken || !refreshToken || !sessionActive) {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  cookies.delete("session-active", { path: "/" });
   return redirect("/signin");
 }
 
@@ -22,26 +27,69 @@ if (!accessToken || !refreshToken) {
 try {
   const {
     data: { session },
+    error,
   } = await supabase.auth.setSession({
     access_token: accessToken,
     refresh_token: refreshToken,
   });
 
-  // Si no hay sesión válida, redirigir al login
-  if (!session) {
+  // Si no hay sesión válida o hay error, redirigir al login
+  if (error || !session) {
+    console.error("Error de autenticación:", error);
     cookies.delete("sb-access-token", { path: "/" });
     cookies.delete("sb-refresh-token", { path: "/" });
+    cookies.delete("session-active", { path: "/" });
+    return redirect("/signin");
+  }
+
+  // Verificar que el token no haya expirado
+  const now = Math.floor(Date.now() / 1000);
+  if (session.expires_at && session.expires_at < now) {
+    console.error("Token expirado");
+    cookies.delete("sb-access-token", { path: "/" });
+    cookies.delete("sb-refresh-token", { path: "/" });
+    cookies.delete("session-active", { path: "/" });
     return redirect("/signin");
   }
 } catch (error) {
   console.error("Error de autenticación:", error);
   cookies.delete("sb-access-token", { path: "/" });
   cookies.delete("sb-refresh-token", { path: "/" });
+  cookies.delete("session-active", { path: "/" });
   return redirect("/signin");
 }
 ---
 
 <Layout title="Admin">
   <Header />
+  <LogoutButton />
   <AdminReservas client:load />
 </Layout>
+
+<script>
+  // Agregar headers de seguridad dinámicamente
+  document.addEventListener("DOMContentLoaded", function () {
+    // Prevenir clickjacking
+    if (window.self !== window.top && window.top !== null) {
+      window.top.location = window.self.location;
+    }
+
+    // Prevenir acceso con teclas de desarrollador
+    document.addEventListener("keydown", function (e) {
+      if (
+        e.ctrlKey &&
+        e.shiftKey &&
+        (e.key === "I" || e.key === "J" || e.key === "C")
+      ) {
+        e.preventDefault();
+        return false;
+      }
+    });
+
+    // Prevenir clic derecho
+    document.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      return false;
+    });
+  });
+</script>

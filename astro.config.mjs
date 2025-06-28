@@ -16,7 +16,14 @@ export default defineConfig({
     optimizeDeps: {
       include: ["react-datepicker"],
     },
+    server: {
+      hmr: {
+        port: 5173,
+      },
+    },
   },
-
+  devToolbar: {
+    enabled: false,
+  },
   integrations: [react()],
 });

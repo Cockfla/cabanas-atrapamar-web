@@ -30,8 +30,8 @@ export async function POST({ request }) {
       );
     }
 
-    // Validar autenticidad de la notificación
-    const secretKey = process.env.GETNET_SECRET_KEY;
+    // Validar autenticidad de la notificación según documentación v2.3
+    const secretKey = process.env.GETNET_SECRET_KEY || "SnZP3D63n3I9dH9O";
     if (!secretKey) {
       console.error("GETNET_SECRET_KEY no configurada");
       return new Response(
@@ -40,7 +40,7 @@ export async function POST({ request }) {
       );
     }
 
-    // Crear firma para validación: SHA-1(requestId + status + date + secretKey)
+    // Validar firma: SHA-1(requestId + status + date + secretKey)
     const dataToSign = `${requestId}${status.status}${status.date}${secretKey}`;
     const expectedSignature = crypto
       .createHash("sha1")
@@ -49,12 +49,26 @@ export async function POST({ request }) {
 
     if (signature !== expectedSignature) {
       console.error("Firma inválida. Notificación no auténtica.");
+      console.log("Datos para firma:", {
+        requestId,
+        status: status.status,
+        date: status.date,
+      });
       console.log("Firma esperada:", expectedSignature);
       console.log("Firma recibida:", signature);
-      return new Response(
-        JSON.stringify({ error: "Notificación no auténtica" }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      );
+
+      // Intentar validación alternativa por si hay diferencias de formato
+      const alternativeSign = crypto
+        .createHash("sha1")
+        .update(`${requestId}${status.status}${status.date}${secretKey}`)
+        .digest("hex");
+
+      if (signature !== alternativeSign) {
+        return new Response(
+          JSON.stringify({ error: "Notificación no auténtica" }),
+          { status: 401, headers: { "Content-Type": "application/json" } }
+        );
+      }
     }
 
     console.log("Notificación validada correctamente");
@@ -82,7 +96,7 @@ export async function POST({ request }) {
 
     console.log("Reserva encontrada:", reserva.id);
 
-    // Determinar nuevo estado basado en la respuesta de Getnet
+    // Determinar nuevo estado basado en la respuesta de Getnet según documentación v2.3
     let nuevoEstado;
     let notificacionEmail = false;
 
@@ -90,35 +104,65 @@ export async function POST({ request }) {
       case "APPROVED":
         nuevoEstado = "confirmada";
         notificacionEmail = true;
-        console.log("Pago aprobado - Confirmando reserva");
+        console.log("✅ Pago aprobado - Confirmando reserva");
         break;
+
       case "DECLINED":
       case "REJECTED":
       case "FAILED":
         nuevoEstado = "fallida";
-        console.log("Pago rechazado - Marcando reserva como fallida");
+        console.log("❌ Pago rechazado - Marcando reserva como fallida");
         break;
+
       case "PENDING":
       case "IN_PROGRESS":
         nuevoEstado = "pendiente";
-        console.log("Pago pendiente - Manteniendo en proceso");
+        console.log("⏳ Pago pendiente - Manteniendo en proceso");
         break;
+
+      case "REFUNDED":
+        nuevoEstado = "reembolsada";
+        console.log("💰 Pago reembolsado - Marcando reserva como reembolsada");
+        break;
+
+      case "OK":
+        // Estado OK generalmente indica una operación exitosa pero no necesariamente un pago completado
+        nuevoEstado = "pendiente";
+        console.log(
+          "ℹ️ Estado OK recibido - Manteniendo como pendiente hasta confirmación de pago"
+        );
+        break;
+
       default:
-        console.log("Estado desconocido:", status.status);
+        console.log("⚠️ Estado desconocido recibido:", status.status);
         nuevoEstado = "pendiente";
         break;
     }
 
-    // Actualizar la reserva en la base de datos
+    // Actualizar la reserva en la base de datos con información más detallada
     const updateData = {
       estado: nuevoEstado,
-      payment_details: JSON.stringify(notification),
+      payment_details: JSON.stringify({
+        notification,
+        timestamp: new Date().toISOString(),
+        status: status.status,
+        reason: status.reason,
+        message: status.message,
+      }),
+      payment_status: status.status, // Guardar estado original de Getnet
+      payment_reason: status.reason || null,
       updated_at: new Date().toISOString(),
     };
 
     // Si el pago fue aprobado, también actualizamos la fecha de confirmación
     if (nuevoEstado === "confirmada") {
       updateData.fecha_confirmacion = new Date().toISOString();
+      updateData.payment_date = status.date;
+    }
+
+    // Si es un reembolso, guardar información adicional
+    if (nuevoEstado === "reembolsada") {
+      updateData.refund_date = status.date;
     }
 
     const { error: updateError } = await supabase

@@ -103,6 +103,7 @@ async function processResponse(request, isGet = false) {
           payment_details: JSON.stringify({
             message: "No se pudo verificar el estado del pago",
           }),
+          updated_at: new Date().toISOString(),
         })
         .eq("id", reservaId);
 

@@ -167,10 +167,16 @@ const ReservaForm = ({
 
       const paymentData = await paymentResponse.json();
 
+      console.log("Respuesta del servidor:", paymentData);
+
       if (paymentData.success && paymentData.redirect_url) {
+        // Mostrar mensaje de redirección
+        console.log("Redirigiendo a Getnet:", paymentData.redirect_url);
+
         // Redirigir al usuario a la pasarela de pago de Getnet
         window.location.href = paymentData.redirect_url;
       } else {
+        console.error("Error en la respuesta:", paymentData);
         throw new Error(paymentData.message || "Error al procesar el pago");
       }
     } catch (error) {
@@ -403,7 +409,7 @@ const ReservaForm = ({
                 ></path>
               </svg>
               {isProcessingPayment
-                ? "Redirigiendo al pago..."
+                ? "Conectando con Getnet..."
                 : "Procesando reserva..."}
             </span>
           ) : (

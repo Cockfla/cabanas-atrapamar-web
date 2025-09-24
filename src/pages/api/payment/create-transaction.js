@@ -183,10 +183,12 @@ export const POST = async ({ request }) => {
       status: paymentResponse.status,
       requestId: paymentResponse.requestId,
       hasProcessUrl: !!paymentResponse.processUrl,
+      processUrl: paymentResponse.processUrl, // Mostrar la URL completa para debug
     });
 
     // Validar respuesta de Getnet
     if (!paymentResponse.processUrl || !paymentResponse.requestId) {
+      console.error("Respuesta incompleta de Getnet:", paymentResponse);
       throw new Error(
         `Error en la respuesta de Getnet: ${JSON.stringify(paymentResponse)}`
       );

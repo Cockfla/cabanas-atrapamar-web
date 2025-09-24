@@ -157,6 +157,7 @@ const ReservaForm = ({
           nombre: data.nombre,
           email: data.email,
           telefono: data.telefono,
+          documento: data.documento || null, // Incluir RUT si se proporciona
           cabaña_id: data.cabaña_id,
           fecha_inicio: formatearFecha(fechaInicio),
           fecha_fin: formatearFecha(fechaFin),
@@ -259,6 +260,32 @@ const ReservaForm = ({
                 {errors.telefono.message}
               </p>
             )}
+          </div>
+
+          <div>
+            <label className="block text-gray-700 text-sm font-medium mb-1">
+              RUT (opcional para pago con Getnet)
+            </label>
+            <input
+              {...register("documento", {
+                pattern: {
+                  value: /^[0-9]{7,8}-[0-9Kk]{1}$/,
+                  message: "Formato de RUT inválido (ej: 12345678-9)",
+                },
+              })}
+              className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.documento ? "border-red-500" : "border-gray-300"
+              }`}
+              placeholder="Ej: 12345678-9"
+            />
+            {errors.documento && (
+              <p className="mt-1 text-sm text-red-600">
+                {errors.documento.message}
+              </p>
+            )}
+            <p className="mt-1 text-xs text-gray-500">
+              Opcional: Si proporcionas tu RUT, aparecerá en el recibo de pago
+            </p>
           </div>
 
           <div>
@@ -383,24 +410,44 @@ const ReservaForm = ({
             "Continuar al pago"
           )}
         </button>
-        <div className="flex justify-center flex-col items-center gap-2">
-          <img
-            src="/Logo_WebCheckout_Getnet.svg"
-            alt="Getnet"
-            width={120}
-            height={120}
-          />
+
+        {/* Sección de información de pago con Getnet según documentación */}
+        <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mt-4">
+          <div className="flex justify-center mb-3">
+            <img
+              src="/Logo_WebCheckout_Getnet.svg"
+              alt="Getnet Web Checkout"
+              className="h-12"
+            />
+          </div>
+          <div className="text-center">
+            <h4 className="font-medium text-gray-900 mb-2">
+              Tarjeta de crédito, débito o prepago
+            </h4>
+            <p className="text-sm text-gray-600 leading-relaxed">
+              Paga seguro todo lo que necesitas con Getnet utilizando tus
+              tarjetas de crédito, débito y prepago, de todos los emisores
+              nacionales e internacionales.
+            </p>
+          </div>
         </div>
 
-        <p className="text-xs text-gray-500 text-center">
+        <p className="text-xs text-gray-500 text-center mt-3">
           Al reservar, aceptas nuestros{" "}
           <a
-            href="http://localhost:4321/terminos-y-condiciones"
+            href="/terminos-y-condiciones"
             className="underline hover:text-blue-500"
           >
-            términos y condiciones.
+            términos y condiciones
           </a>{" "}
-          Serás redirigido a nuestra pasarela de pagos segura.
+          y{" "}
+          <a
+            href="/politica-de-privacidad"
+            className="underline hover:text-blue-500"
+          >
+            política de privacidad
+          </a>
+          . Serás redirigido a nuestra pasarela de pagos segura.
         </p>
       </form>
     </div>
